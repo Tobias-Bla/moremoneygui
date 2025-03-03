@@ -6,7 +6,6 @@ import axios from "axios";
 
 export default function HomePage() {
   const { data: session } = useSession();
-  const [stockData, setStockData] = useState([]);
 
   // Fetch stock data from your API
   useEffect(() => {

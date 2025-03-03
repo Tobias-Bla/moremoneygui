@@ -33,7 +33,7 @@ interface StockPrice {
 }
 
 // Define the available time spans
-const timeSpanOptions = [
+const timeSpanOptions: { label: string; value: string }[] = [
   { label: "All Time", value: "ALL" },
   { label: "Last 1 Day", value: "1D" },
   { label: "Last 1 Week", value: "1W" },
@@ -47,24 +47,24 @@ export default function StockDashboard() {
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
   const [timeSpan, setTimeSpan] = useState<string>("ALL");
 
-  // Fetch stock prices on mount
+  // Fetch stock prices on mount with proper type annotation
   useEffect(() => {
     axios
-      .get("/api/stock_prices")
+      .get<StockPrice[]>("/api/stock_prices")
       .then((res) => setStockPrices(res.data))
-      .catch((error) =>
+      .catch((error: unknown) =>
         console.error("Error fetching stock prices:", error)
       );
   }, []);
 
-  // Group stock prices by symbol
+  // Group stock prices by symbol; type the accumulator explicitly.
   const groupedData = stockPrices.reduce((acc: { [key: string]: StockPrice[] }, curr) => {
     if (!acc[curr.symbol]) {
       acc[curr.symbol] = [];
     }
     acc[curr.symbol].push(curr);
     return acc;
-  }, {});
+  }, {} as { [key: string]: StockPrice[] });
 
   // On data load, initialize selectedSymbols with all symbols if none are selected
   useEffect(() => {
@@ -72,14 +72,12 @@ export default function StockDashboard() {
     if (selectedSymbols.length === 0 && allSymbols.length > 0) {
       setSelectedSymbols(allSymbols);
     }
-  }, [groupedData]);
+  }, [groupedData, selectedSymbols.length]);
 
   // Toggle symbol selection
   const toggleSymbol = (symbol: string) => {
     setSelectedSymbols((prev) =>
-      prev.includes(symbol)
-        ? prev.filter((s) => s !== symbol)
-        : [...prev, symbol]
+      prev.includes(symbol) ? prev.filter((s) => s !== symbol) : [...prev, symbol]
     );
   };
 
@@ -106,12 +104,12 @@ export default function StockDashboard() {
 
   // Prepare datasets for the chart, filtering data points by the selected time span
   const datasets = selectedSymbols.map((symbol) => {
-    const dataForSymbol =
-      groupedData[symbol]?.filter((dp) => new Date(dp.timestamp) >= startDate)
+    const dataForSymbol = (groupedData[symbol] || [])
+      .filter((dp) => new Date(dp.timestamp) >= startDate)
       .sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      ) || [];
+      );
     return {
       label: symbol,
       data: dataForSymbol.map((dp) => ({
@@ -149,7 +147,7 @@ export default function StockDashboard() {
   };
 
   // Utility function: assign a consistent color for each symbol
-  function getColorForSymbol(symbol: string) {
+  function getColorForSymbol(symbol: string): string {
     const colors = [
       "rgba(75,192,192,1)",
       "rgba(192,75,192,1)",
@@ -162,7 +160,7 @@ export default function StockDashboard() {
     return colors[index];
   }
 
-  function hashCode(str: string) {
+  function hashCode(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -179,7 +177,7 @@ export default function StockDashboard() {
         <h2 className="text-xl font-semibold mb-2">Select Time Span</h2>
         <select
           value={timeSpan}
-          onChange={(e) => setTimeSpan(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTimeSpan(e.target.value)}
           className="border p-2 rounded-md bg-gray-700 text-white"
         >
           {timeSpanOptions.map((option) => (

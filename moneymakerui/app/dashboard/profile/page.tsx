@@ -1,15 +1,17 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react"; // Import next-auth to handle session
+import { useSession, signOut } from "next-auth/react";
 import React from "react";
 
 const ProfilePage: React.FC = () => {
-  const { data: session } = useSession(); // Get session data (user info)
+  const { data: session } = useSession();
 
   if (!session) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-100">
-        <p className="text-xl text-gray-600">You must be logged in to view the profile page.</p>
+        <p className="text-xl text-gray-600">
+          You must be logged in to view the profile page.
+        </p>
       </div>
     );
   }
@@ -24,7 +26,7 @@ const ProfilePage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="w-32 h-32">
                 <img
-                  src={session?.user?.image || "/default-avatar.png"} // Fallback if image doesn't exist
+                  src={session?.user?.image || "/default-avatar.png"}
                   alt="User Avatar"
                   className="w-full h-full object-cover rounded-full"
                 />
@@ -35,15 +37,30 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Display more user info here if available */}
+            {/* Display more user info */}
             <div>
               <h4 className="font-semibold text-lg mt-4">User Info</h4>
               <div className="space-y-2">
-                <p><strong>Name:</strong> {session?.user?.name}</p>
-                <p><strong>Email:</strong> {session?.user?.email}</p>
-                <p><strong>Username:</strong> {session?.user?.name}</p> {/* Adjust if you have a username field */}
-                {/* You can add other fields here depending on what user information is available */}
+                <p>
+                  <strong>Name:</strong> {session?.user?.name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {session?.user?.email}
+                </p>
+                <p>
+                  <strong>Username:</strong> {session?.user?.name}
+                </p>
               </div>
+            </div>
+
+            {/* Sign Out Button */}
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => signOut()}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>

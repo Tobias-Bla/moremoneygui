@@ -1,4 +1,3 @@
-// /dashboard/test/page.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -14,7 +13,7 @@ export default function DashboardPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           username,
@@ -29,8 +28,12 @@ export default function DashboardPage() {
       }
       setIsLoggedIn(true);
       setLoginError("");
-    } catch (error: any) {
-      setLoginError(error.message);
+    } catch (error: unknown) {
+      let errorMessage = "An unknown error occurred";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      setLoginError(errorMessage);
       console.error("Login error:", error);
     }
   };

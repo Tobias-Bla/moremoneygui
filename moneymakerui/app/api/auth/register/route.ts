@@ -5,8 +5,15 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export async function POST(req: Request) {
-  const { name, email, password } = await req.json();
+  // Explicitly type the expected request body
+  const { name, email, password } = (await req.json()) as RegisterRequest;
 
   // You can add validation logic here (e.g., check if the user already exists)
 
@@ -15,13 +22,16 @@ export async function POST(req: Request) {
       data: {
         name,
         email,
-        password, // In a real application, you should hash the password before storing it!
+        password, // In a real application, hash the password before storing it!
       },
     });
 
     return NextResponse.json({ message: "User created successfully", user: newUser });
-  } catch (error: any) {
-    // Type error as any to prevent TypeScript error
-    return NextResponse.json({ message: "Error creating user", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    let errorMessage = "Unknown error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return NextResponse.json({ message: "Error creating user", error: errorMessage }, { status: 500 });
   }
 }

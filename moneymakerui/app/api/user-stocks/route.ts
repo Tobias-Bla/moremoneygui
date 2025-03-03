@@ -4,7 +4,8 @@ import { getServerSession } from "next-auth";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
+  // Note: The request parameter is renamed to _req to indicate it's unused.
   const session = await getServerSession();
   
   if (!session?.user?.email) {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     // Use findFirst instead of findUnique because StockPrice has a composite key.
     const stockExists = await prisma.stockPrice.findFirst({
       where: { symbol },
-      orderBy: { timestamp: 'desc' } // Optionally get the most recent record
+      orderBy: { timestamp: 'desc' }, // Optionally get the most recent record
     });
 
     if (!stockExists) {
@@ -56,7 +57,6 @@ export async function POST(req: NextRequest) {
       },
     });
     
-
     return NextResponse.json(stock);
   } catch (error) {
     console.error("Error adding stock:", error);

@@ -1,4 +1,4 @@
-import NextAuth, { Session, User } from "next-auth";
+import NextAuth, { Session } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import { JWT } from "next-auth/jwt"; // Import JWT from next-auth/jwt
 
