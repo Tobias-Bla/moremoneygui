@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model StockPrice {
+  symbol    String   @db.VarChar(10)
+  timestamp DateTime @db.Timestamptz(6)
+  price     Decimal  @db.Decimal(10, 2)
+
+  @@id([symbol, timestamp])
+  @@map("stock_prices")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model UserStock {
+  id        Int    @id @default(autoincrement())
+  email     String
+  symbol    String
+  price     Float
+  timestamp String
+
+  @@unique([email, symbol])
+}
