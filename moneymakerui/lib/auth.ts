@@ -1,15 +1,6 @@
-// Define a minimal version of NextAuthOptions
-export type NextAuthOptions = {
-  providers: any[];
-  callbacks?: {
-    session?: (params: { session: any }) => Promise<any>;
-    jwt?: (params: { token: any }) => Promise<any>;
-  };
-  secret?: string;
-};
-
-// Then use it in your configuration:
 import { getServerSession } from "next-auth/next";
+import type { NextAuthOptions, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -25,10 +16,17 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT;
+    }): Promise<Session> {
+      // Optionally attach token data to session if needed
       return session;
     },
-    async jwt({ token }) {
+    async jwt({ token }: { token: JWT }): Promise<JWT> {
       return token;
     },
   },

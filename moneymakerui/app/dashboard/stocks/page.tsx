@@ -36,7 +36,9 @@ export default function StocksPage() {
     }
 
     try {
-      const response = await axios.get<{ symbol: string }[]>(`/api/stock-suggestions?query=${value.toUpperCase()}`);
+      const response = await axios.get<{ symbol: string }[]>(
+        `/api/stock-suggestions?query=${value.toUpperCase()}`
+      );
       setSuggestions(response.data || []);
     } catch (error) {
       console.error("Error fetching suggestions:", error);
@@ -44,8 +46,11 @@ export default function StocksPage() {
     }
   };
 
-  // Handle input change
-  const onChange = (_: any, { newValue }: { newValue: string }) => {
+  // Handle input change with adjusted event type
+  const onChange = (
+    _event: React.FormEvent<HTMLElement>,
+    { newValue }: { newValue: string }
+  ) => {
     setSymbol(newValue.toUpperCase()); // Ensures uppercase
     setErrorMessage(""); // Clear errors
   };
@@ -68,8 +73,9 @@ export default function StocksPage() {
       const res = await axios.post("/api/user-stocks", { symbol });
       setStocks([...stocks, res.data]); // Update UI with the new stock
       setSymbol("");
-      setSuggestions([]);
-      setErrorMessage("");
+      setSuggestions([]); // Clear suggestions
+      setErrorMessage(""); // Clear errors
+      alert("Stock added!");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setErrorMessage(error.response?.data?.error || "Error adding stock");
@@ -90,7 +96,9 @@ export default function StocksPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black p-6">
       <div className="w-full max-w-2xl bg-gray-800 p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-semibold text-center mb-6 text-white">My Stocks</h1>
+        <h1 className="text-3xl font-semibold text-center mb-6 text-white">
+          My Stocks
+        </h1>
 
         {/* Auto-complete Input Field */}
         <Autosuggest
@@ -99,8 +107,10 @@ export default function StocksPage() {
           onSuggestionsClearRequested={onSuggestionsClearRequested}
           getSuggestionValue={(suggestion) => suggestion.symbol}
           renderSuggestion={(suggestion) => (
-            <div className="p-2 hover:bg-gray-700 cursor-pointer text-white">{suggestion.symbol}</div>
-          )}          
+            <div className="p-2 hover:bg-gray-700 cursor-pointer text-white">
+              {suggestion.symbol}
+            </div>
+          )}
           inputProps={{
             placeholder: "Enter stock symbol...",
             value: symbol,
@@ -124,11 +134,15 @@ export default function StocksPage() {
         <ul className="space-y-3 mt-4">
           {stocks.length > 0 ? (
             stocks.map((stock) => (
-              <li key={stock.symbol} className="flex justify-between items-center p-4 bg-gray-700 rounded shadow">
+              <li
+                key={stock.symbol}
+                className="flex justify-between items-center p-4 bg-gray-700 rounded shadow"
+              >
                 <div>
                   <p className="text-white font-medium">{stock.symbol}</p>
                   <p className="text-gray-400 text-sm">
-                    Price: ${stock.price.toFixed(2)} | Updated: {new Date(stock.timestamp).toLocaleString()}
+                    Price: ${stock.price.toFixed(2)} | Updated:{" "}
+                    {new Date(stock.timestamp).toLocaleString()}
                   </p>
                 </div>
                 <button
@@ -147,4 +161,3 @@ export default function StocksPage() {
     </div>
   );
 }
-
