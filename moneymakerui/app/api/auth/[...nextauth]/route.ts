@@ -1,22 +1,23 @@
-import NextAuth, { NextAuthOptions, SessionStrategy } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import type { NextAuthOptions } from "next-auth";
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
 const prisma = new PrismaClient();
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
       authorization: {
         params: {
-          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`, // ✅ Dynamically sets redirect URI
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
         },
       },
     }),
@@ -54,13 +55,13 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET!,
   session: {
-    strategy: "jwt" as SessionStrategy, // ✅ Fix type error
+    strategy: "jwt",
   },
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.name = token.name ?? session.user.email ?? "User"; // Ensure name is always available
+        session.user.name = token.name ?? session.user.email ?? "User"; 
       }
       return session;
     },
@@ -71,6 +72,6 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ Correctly export GET & POST methods for Next.js App Router
+// ✅ Correctly export GET & POST handlers
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
