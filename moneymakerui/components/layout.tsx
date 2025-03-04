@@ -1,6 +1,6 @@
 // components/layout.tsx
 import React from 'react';
-import Sidebar from './sidebar'; // Import your Sidebar component
+import Sidebar from './Sidebar'; // Import your Sidebar component
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
