@@ -6,11 +6,11 @@ import Image from "next/image";
 
 const Header = () => {
   const { data: session } = useSession();
-  const router = useRouter(); // ✅ Use router for redirection
+  const router = useRouter();
 
   async function handleLogout() {
-    await signOut({ redirect: false }); // ✅ Prevents default NextAuth redirection
-    router.push("/login"); // ✅ Manually redirect to login page
+    await signOut({ redirect: false }); // ✅ Prevents NextAuth's default redirect
+    router.push("/login"); // ✅ Manually redirects to login page
   }
 
   return (
@@ -23,19 +23,16 @@ const Header = () => {
       {/* Profile & Logout */}
       {session?.user && (
         <div className="flex items-center">
-          <span className="mr-3">Welcome, {session.user.name || "User"}</span>
-          import Image from "next/image";
-
-<Image
-  src={session?.user?.image || "/default-avatar.png"}
-  alt="User Avatar"
-  width={32} // ✅ Specify width
-  height={32} // ✅ Specify height
-  className="w-8 h-8 rounded-full"
-/>
-
+          <span className="mr-3">Welcome to &quot;MoreMoney&quot;, {session.user.name || "User"}</span>
+          <Image
+            src={session.user.image || "/default-avatar.png"}
+            alt="User Avatar"
+            width={32} // ✅ Required for next/image
+            height={32} // ✅ Required for next/image
+            className="w-8 h-8 rounded-full"
+          />
           <button
-            onClick={handleLogout} // ✅ Use modified logout function
+            onClick={handleLogout}
             className="ml-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500"
           >
             Logout
