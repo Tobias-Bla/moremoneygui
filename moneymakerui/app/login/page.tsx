@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,11 +83,12 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-4 text-center text-gray-400">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-500 hover:underline">
-            Sign up
-          </a>
-        </p>
+  Don&apos;t have an account?{" "}
+  <a href="/signup" className="text-blue-500 hover:underline">
+    Sign up
+  </a>
+</p>
+
       </div>
     </div>
   );

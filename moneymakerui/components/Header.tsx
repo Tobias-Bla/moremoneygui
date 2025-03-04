@@ -24,11 +24,16 @@ const Header = () => {
       {session?.user && (
         <div className="flex items-center">
           <span className="mr-3">Welcome, {session.user.name || "User"}</span>
-          <img
-            src={session.user.image || "/default-avatar.png"}
-            alt="User Avatar"
-            className="w-8 h-8 rounded-full"
-          />
+          import Image from "next/image";
+
+<Image
+  src={session?.user?.image || "/default-avatar.png"}
+  alt="User Avatar"
+  width={32} // ✅ Specify width
+  height={32} // ✅ Specify height
+  className="w-8 h-8 rounded-full"
+/>
+
           <button
             onClick={handleLogout} // ✅ Use modified logout function
             className="ml-4 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-500"

@@ -27,6 +27,12 @@ export default function Register() {
       const data = await res.json();
       setError(data.error);
     }
+    try {
+      // Your existing code...
+    } catch (error) {
+      console.error(error); // ✅ Logs the error to avoid unused variable issue
+    }
+    
   };
 
   return (
