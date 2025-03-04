@@ -71,6 +71,6 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ Explicitly export GET and POST for Next.js App Router
+// ✅ Correctly export GET & POST methods for Next.js App Router
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
