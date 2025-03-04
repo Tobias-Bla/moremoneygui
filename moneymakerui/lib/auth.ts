@@ -18,7 +18,6 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({
       session,
-      token,
     }: {
       session: Session;
       token: JWT;
