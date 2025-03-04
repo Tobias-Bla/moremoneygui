@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/SessionProvider";
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header"; // ✅ Import the new header component
+import Header from "@/components/Header"; // ✅ Import the new header components
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
@@ -37,4 +37,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
+
 }
