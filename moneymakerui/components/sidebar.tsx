@@ -1,4 +1,4 @@
-"use client"; // ✅ Ensures `useSession()` works
+"use client"; // ✅ Ensures `useSession()` workss
 
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
