@@ -9,13 +9,14 @@ export async function POST(req: Request) {
 
     // ✅ Validate input
     if (!email || !password || !name) {
-      return new Response("Missing required fields", { status: 400 });
+      return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
 
     // ✅ Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return new Response("User already exists", { status: 400 });
+      console.log(`❌ Registration failed: Email ${email} already exists.`);
+      return new Response(JSON.stringify({ error: "Email already in use" }), { status: 400 });
     }
 
     // ✅ Hash the password before storing
@@ -30,13 +31,15 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(`✅ User registered successfully: ${newUser.email}`);
+
     return new Response(JSON.stringify({ message: "User created", user: newUser }), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
 
   } catch (error) {
-    console.error("Registration Error:", error);
-    return new Response("Something went wrong", { status: 500 });
+    console.error("❌ Registration Error:", error);
+    return new Response(JSON.stringify({ error: "Something went wrong" }), { status: 500 });
   }
 }
