@@ -17,7 +17,7 @@ const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_SECRET!,
       authorization: {
         params: {
-          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`, // ✅ Ensures proper GitHub redirect
         },
       },
     }),
@@ -72,6 +72,5 @@ const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ Correctly export GET & POST handlers
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
