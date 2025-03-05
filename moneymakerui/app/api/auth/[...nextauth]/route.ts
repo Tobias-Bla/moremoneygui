@@ -4,14 +4,15 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import type { NextAuthOptions, Profile as NextAuthProfile } from "next-auth";
+import type { NextAuthOptions, Profile as NextAuthProfile, Account, User } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters"; // ✅ Correct import for AdapterUser
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
-// ✅ Extend the Profile type to include `id` and `avatar_url`
+// ✅ Extend Profile type to include GitHub-specific properties
 interface ExtendedProfile extends NextAuthProfile {
-  id?: string | number; // GitHub returns a numeric ID
-  avatar_url?: string;  // GitHub profile picture field
+  id?: string | number;
+  avatar_url?: string;
 }
 
 const prisma = new PrismaClient();
@@ -74,14 +75,30 @@ const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, account, profile }: { token: JWT; account?: any; profile?: ExtendedProfile }) {
+    async jwt({
+      token,
+      user,
+      account,
+      profile,
+      trigger,
+      isNewUser,
+    }: {
+      token: JWT;
+      user?: User | AdapterUser;
+      account?: Account | null;
+      profile?: ExtendedProfile;
+      trigger?: "signIn" | "signUp" | "update";
+      isNewUser?: boolean;
+    }) {
       if (account) {
         token.accessToken = account.access_token;
       }
+      if (user) {
+        token.id = user.id;
+        token.name = user.name || user.email;
+        token.email = user.email;
+      }
       if (profile) {
-        token.id = profile.id ? profile.id.toString() : ""; // ✅ Convert numeric ID to string
-        token.name = profile.name || profile.email;
-        token.email = profile.email;
         token.picture = profile.avatar_url || profile.image || "/default-avatar.png"; // ✅ Fix GitHub profile image
       }
       return token;
