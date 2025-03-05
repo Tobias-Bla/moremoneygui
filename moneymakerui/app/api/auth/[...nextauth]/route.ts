@@ -5,7 +5,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import type { NextAuthOptions, Profile as NextAuthProfile, Account, User } from "next-auth";
-import type { AdapterUser } from "next-auth/adapters"; // ✅ Correct import for AdapterUser
+import type { AdapterUser } from "next-auth/adapters"; // ✅ Correct import
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
@@ -80,15 +80,11 @@ const authOptions: NextAuthOptions = {
       user,
       account,
       profile,
-      trigger,
-      isNewUser,
     }: {
       token: JWT;
       user?: User | AdapterUser;
       account?: Account | null;
       profile?: ExtendedProfile;
-      trigger?: "signIn" | "signUp" | "update";
-      isNewUser?: boolean;
     }) {
       if (account) {
         token.accessToken = account.access_token;
