@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error("Registration Error:", error); // ✅ Logs the error to avoid ESLint issue
+    console.error("Registration Error:", error);
     return new Response("Something went wrong", { status: 500 });
   }
 }

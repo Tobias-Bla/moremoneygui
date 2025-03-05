@@ -4,9 +4,15 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import type { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions, Profile as NextAuthProfile } from "next-auth";
 import type { Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
+
+// ✅ Extend the Profile type to include `id` and `avatar_url`
+interface ExtendedProfile extends NextAuthProfile {
+  id?: string | number; // GitHub returns a numeric ID
+  avatar_url?: string;  // GitHub profile picture field
+}
 
 const prisma = new PrismaClient();
 
@@ -16,10 +22,14 @@ const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
       authorization: {
+        url: "https://github.com/login/oauth/authorize",
         params: {
-          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`, // ✅ Ensures proper GitHub redirect
+          scope: "read:user user:email",
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/github`,
         },
       },
+      token: "https://github.com/login/oauth/access_token",
+      userinfo: "https://api.github.com/user",
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -32,8 +42,6 @@ const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Authorize called with:", credentials);
-
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Missing email or password");
         }
@@ -48,7 +56,6 @@ const authOptions: NextAuthOptions = {
           throw new Error("Invalid password.");
         }
 
-        console.log("User authenticated:", user);
         return user;
       },
     }),
@@ -61,9 +68,23 @@ const authOptions: NextAuthOptions = {
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.name = token.name ?? session.user.email ?? "User"; 
+        session.user.name = token.name ?? session.user.email ?? "User";
+        session.user.email = token.email ?? "";
+        session.user.image = token.picture ?? "/default-avatar.png";
       }
       return session;
+    },
+    async jwt({ token, account, profile }: { token: JWT; account?: any; profile?: ExtendedProfile }) {
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      if (profile) {
+        token.id = profile.id ? profile.id.toString() : ""; // ✅ Convert numeric ID to string
+        token.name = profile.name || profile.email;
+        token.email = profile.email;
+        token.picture = profile.avatar_url || profile.image || "/default-avatar.png"; // ✅ Fix GitHub profile image
+      }
+      return token;
     },
   },
   pages: {
