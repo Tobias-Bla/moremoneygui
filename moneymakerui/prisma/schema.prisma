@@ -25,11 +25,11 @@ model User {
 }
 
 model UserStock {
-  id        Int    @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String
   symbol    String
-  price     Float
-  timestamp String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
 
-  @@unique([email, symbol])
+  @@unique([email, symbol], name: "email_symbol")
 }

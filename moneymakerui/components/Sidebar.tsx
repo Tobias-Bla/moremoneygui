@@ -1,9 +1,9 @@
-"use client"; // ✅ Ensures `useSession()` workss
+"use client"; // ✅ Ensures `useSession()` works
 
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FaChartLine, FaUserAlt, FaSignOutAlt } from "react-icons/fa";
+import { FaChartPie, FaUserAlt, FaSignOutAlt } from "react-icons/fa";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -28,17 +28,17 @@ const Sidebar = () => {
               href="/dashboard"
               className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
             >
-              <FaChartLine className="mr-3 text-xl" />
+              <FaChartPie className="mr-3 text-xl" />
               Dashboard
             </a>
           </li>
           <li>
             <a
-              href="/dashboard/stocks"
+              href="/dashboard/portfolio"
               className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
             >
-              <FaChartLine className="mr-3 text-xl" />
-              Stocks
+              <FaChartPie className="mr-3 text-xl" />
+              My Portfolio
             </a>
           </li>
           <li>

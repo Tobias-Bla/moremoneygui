@@ -6,6 +6,7 @@ import AuthProvider from "@/components/SessionProvider";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header"; // ✅ Import the new header components
 import { usePathname } from "next/navigation";
+import Link from "next/link"; // ✅ Import Link from Next.js
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 p-6 bg-gray-100">{children}</main>
           </div>
           <footer className="bg-gray-800 text-white text-center p-4">
-            <p>Hello World</p>
+            <Link href="/impressum" className="text-blue-400 hover:underline">
+              Impressum
+            </Link>
           </footer>
         </AuthProvider>
       </body>
     </html>
   );
-
 }
