@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 
 const prisma = new PrismaClient();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_req: NextRequest) {
   const session = await getServerSession();
   const email = session?.user?.email;
@@ -21,6 +22,7 @@ export async function GET(_req: NextRequest) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(req: NextRequest) {
   const session = await getServerSession();
   const email = session?.user?.email;
@@ -51,6 +53,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession();
   const email = session?.user?.email;
