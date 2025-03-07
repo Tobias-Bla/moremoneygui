@@ -18,15 +18,12 @@ MoreMoney is a web application built with Next.js to track stock prices and mana
 
 ### **Backend & Database**
 
-- **Server Hosting:** Docker on a Windows Server
-- **Database:** PostgreSQL (Enterprise DB hosted on GCP)
+- **Server Hosting:** DEV: Docker on a Windows Server, PROD: hosted on https://vercel.com/
+- **Database:** DEV PostgreSQL (Enterprise DB hosted on GCP), PROD: Postgres DB in supabase
 - **Tables Implemented:**
   - `User`: Stores user authentication data
   - `stock_prices`: Contains stock symbols, prices, and timestamps
-  - (Planned) User-stock relationship table
-- **API Backend (Planned):**
-  - The backend developer will provide REST or GraphQL APIs for stock price updates and user data management.
-  - Communication via `fetch` or `Axios` in the frontend.
+  - `User_stocks`:  User-stock relationship table
 
 ### **DevOps & Deployment**
 
