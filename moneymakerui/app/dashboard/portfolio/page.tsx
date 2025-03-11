@@ -25,7 +25,6 @@ export default function PortfolioPage() {
   useEffect(() => {
     if (session?.user?.email) {
       setLoading(true);
-      // Use the correct API route and send credentials (cookies)
       axios
         .get("/api/portfolio", { withCredentials: true })
         .then((res) => {
@@ -47,9 +46,6 @@ export default function PortfolioPage() {
       return;
     }
 
-    console.log("✅ Button clicked! Sending request to API...");
-    console.log("Stock:", selectedSymbol, "Quantity:", quantity);
-
     try {
       const res = await axios.post(
         "/api/portfolio",
@@ -59,8 +55,6 @@ export default function PortfolioPage() {
         },
         { withCredentials: true }
       );
-
-      console.log("✅ Response from API:", res.data);
 
       if (!res.data || !res.data.symbol || !res.data.quantity) {
         throw new Error("Invalid API response structure");
@@ -99,9 +93,9 @@ export default function PortfolioPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black p-6">
-      <div className="w-full max-w-2xl bg-gray-800 p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-semibold text-center mb-6 text-white">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-3xl font-semibold text-center mb-6 text-gray-900">
           My Portfolio
         </h1>
 
@@ -110,7 +104,7 @@ export default function PortfolioPage() {
           <select
             value={selectedSymbol}
             onChange={(e) => setSelectedSymbol(e.target.value)}
-            className="p-2 bg-gray-700 text-white rounded"
+            className="p-2 bg-gray-200 text-gray-900 rounded"
           >
             <option value="">Select Stock</option>
             {stockSymbols.map((symbol) => (
@@ -124,7 +118,7 @@ export default function PortfolioPage() {
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             placeholder="Enter Quantity"
-            className="p-2 bg-gray-700 text-white rounded"
+            className="p-2 bg-gray-200 text-gray-900 rounded"
           />
           <button
             onClick={addStock}
@@ -138,7 +132,7 @@ export default function PortfolioPage() {
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
 
         {/* Loading Indicator */}
-        {loading && <p className="text-white mt-4">Loading portfolio...</p>}
+        {loading && <p className="text-gray-900 mt-4">Loading portfolio...</p>}
 
         {/* Portfolio Overview */}
         <ul className="space-y-3 mt-4">
@@ -146,13 +140,13 @@ export default function PortfolioPage() {
             stocks.map((stock) => (
               <li
                 key={stock.symbol}
-                className="flex justify-between items-center p-4 bg-gray-700 rounded shadow"
+                className="flex justify-between items-center p-4 bg-white rounded shadow"
               >
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-gray-900 font-medium">
                     {stock.symbol} ({stock.quantity} shares)
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 text-sm">
                     Price: $
                     {stock.price !== undefined
                       ? stock.price.toFixed(2)
@@ -170,7 +164,7 @@ export default function PortfolioPage() {
             ))
           ) : (
             !loading && (
-              <p className="text-gray-400 text-center mt-4">
+              <p className="text-gray-600 text-center mt-4">
                 No stocks added yet.
               </p>
             )

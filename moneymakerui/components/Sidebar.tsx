@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FaChartPie, FaUserAlt, FaSignOutAlt } from "react-icons/fa";
+import { FaChartPie, FaUserAlt, FaSignOutAlt, FaBriefcase } from "react-icons/fa";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -37,7 +37,7 @@ const Sidebar = () => {
               href="/dashboard/portfolio"
               className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
             >
-              <FaChartPie className="mr-3 text-xl" />
+              <FaBriefcase className="mr-3 text-xl" />
               My Portfolio
             </a>
           </li>
@@ -60,13 +60,7 @@ const Sidebar = () => {
             <p className="text-sm font-light">Logged in as</p>
             <p className="font-semibold">{session.user.name || session.user.email}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition"
-          >
-            <FaSignOutAlt className="mr-2" />
-            Logout
-          </button>
+         
         </div>
       )}
     </div>

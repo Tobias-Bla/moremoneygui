@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
+/* Optional: Tailwind plugins and custom variants */
 @plugin "tailwindcss-animate";
-
 @custom-variant dark (&:is(.dark *));
 
+/* Theme font variables */
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Global CSS Variables */
 :root {
   --background-image: url('/images/mm_background.png');
   --background: oklch(1 0 0);
@@ -46,6 +48,7 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
+/* Dark Mode Overrides */
 .dark {
   --background-image: url('/images/mm_background.png');
   --background: oklch(0.129 0.042 264.695);
@@ -82,6 +85,7 @@
   --sidebar-ring: oklch(0.446 0.043 257.281);
 }
 
+/* Inline Theme Variables for Easy Access */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -121,27 +125,25 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-html,body {
-  background-image: url('/images/background.jpg'); /* Absolute path */
+/* Global Background & Layout */
+html, body {
+  background-image: url('/images/background.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
   height: 100%;
   margin: 0;
-  color: black;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans), Arial, sans-serif;
+  color: var(--color-foreground);
 }
 
 #__next {
   height: 100%;
+}
+
+/* Logo Container */
+.logo-container {
+  width: 191px;
+  height: 20px;
 }

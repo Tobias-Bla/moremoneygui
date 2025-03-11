@@ -1,0 +1,14 @@
+<svg width="320" height="80" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+  </defs>
+  <!-- Main text -->
+  <text x="10" y="55" font-family="Montserrat, sans-serif" font-size="48" fill="url(#textGrad2)">
+    moremoney
+  </text>
+  <!-- Upward arrow integrated above the text -->
+  <polyline points="150,20 160,10 170,20" fill="none" stroke="#EF4444" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
