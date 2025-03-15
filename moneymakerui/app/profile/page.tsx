@@ -65,11 +65,6 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Global Footer */}
-      <footer className="bg-gray-800 text-white text-center p-4">
-        <p>Hello World</p>
-      </footer>
     </div>
   );
 };

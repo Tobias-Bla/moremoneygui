@@ -53,11 +53,25 @@ const Header = () => {
           My Portfolio
         </Link>
         <Link
-          href="/dashboard/profile"
+          href="/profile"
           className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
         >
           <FaUserAlt className="mr-2 text-xl" />
           Profile
+        </Link>
+        <Link
+          href="/market-trends"
+          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
+        >
+          <FaUserAlt className="mr-2 text-xl" />
+          Market Trends
+        </Link>
+        <Link
+          href="/about"
+          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
+        >
+          <FaUserAlt className="mr-2 text-xl" />
+          About Us
         </Link>
       </nav>
 

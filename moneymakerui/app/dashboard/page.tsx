@@ -125,14 +125,19 @@ export default function StockDashboard() {
   const [timeSpan, setTimeSpan] = useState<string>("ALL");
   const [selectedCharts, setSelectedCharts] = useState<string[]>([]);
 
-  // Load saved dashboard settings or default to all components once.
+  // Load saved dashboard settings or default to two components
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("dashboardSelectedCharts");
       if (saved) {
-        setSelectedCharts(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed.length === 0) {
+          setSelectedCharts(["portfolioOverview", "stockValueSummary"]);
+        } else {
+          setSelectedCharts(parsed);
+        }
       } else {
-        setSelectedCharts(dashboardComponents.map((c) => c.value));
+        setSelectedCharts(["portfolioOverview", "stockValueSummary"]);
       }
     }
   }, []);
@@ -506,7 +511,7 @@ export default function StockDashboard() {
               className="border p-2 rounded-md bg-gray-700 text-white"
             >
               <option value="" disabled>
-                Add Component...
+                Add Component
               </option>
               {availableComponents.map((option) => (
                 <option key={option.value} value={option.value}>
