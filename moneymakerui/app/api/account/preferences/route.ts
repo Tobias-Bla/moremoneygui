@@ -1,4 +1,3 @@
-// app/api/account/preferences/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
@@ -6,6 +5,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
+// GET handler – _req is unused so we prefix it with an underscore.
 export async function GET(_req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) {
@@ -23,13 +23,23 @@ export async function GET(_req: Request) {
   }
 }
 
+// Define an interface for the expected request body.
+interface PreferencesBody {
+  riskTolerance: string;
+  investmentHorizon?: number | string | null;
+  preferredSectors: string;
+}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const { riskTolerance, investmentHorizon, preferredSectors } = await req.json();
+  // Type the request body using the PreferencesBody interface.
+  const body = (await req.json()) as PreferencesBody;
+  const { riskTolerance, investmentHorizon, preferredSectors } = body;
+
   try {
     const existing = await prisma.userPreferences.findUnique({
       where: { userId: session.user.id },
