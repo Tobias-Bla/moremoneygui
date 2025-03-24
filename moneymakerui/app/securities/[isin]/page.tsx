@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // app/securities/[isin]/page.tsx
 import { Metadata } from 'next';
 import styles from '@/styles/securities.module.css';
@@ -33,13 +34,13 @@ export async function generateMetadata({ params }: InvestmentPageProps): Promise
   };
 }
 
-export default async function SecurityPage({ params }: InvestmentPageProps) {
-  const data = await getData(params.isin);
+export default async function SecurityPage({ params: { isin } }: InvestmentPageProps) {
+  const data = await getData(isin);
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h1>{data.name}</h1>
-        <p>ISIN: {params.isin}</p>
+        <p>ISIN: {isin}</p>
       </header>
 
       <section className={styles.overview}>
