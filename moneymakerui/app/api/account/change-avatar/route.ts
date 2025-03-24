@@ -1,3 +1,4 @@
+// app/api/account/change-avatar/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
@@ -17,14 +18,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Update the user's avatar (assumes user model has an "image" field)
+    // Update the user's avatar in the database (assumes the user model has an "image" field)
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
       data: { image: avatarUrl },
     });
 
     return NextResponse.json({ message: "Avatar updated successfully", user: updatedUser });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Change Avatar Error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
