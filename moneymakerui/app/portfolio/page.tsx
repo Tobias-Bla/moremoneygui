@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
+import Link from "next/link";
 
 interface Stock {
   symbol: string;
+  isin: string;
   quantity: number;
-  price?: number; // Price is optional, may not be provided.
+  price?: number;
   timestamp: string;
 }
 
@@ -56,11 +58,17 @@ export default function PortfolioPage() {
         { withCredentials: true }
       );
 
-      if (!res.data || !res.data.symbol || !res.data.quantity) {
+      // Expecting the API to now return an object that includes the ISIN
+      if (
+        !res.data ||
+        !res.data.symbol ||
+        !res.data.quantity ||
+        !res.data.isin
+      ) {
         throw new Error("Invalid API response structure");
       }
 
-      // Update UI: If stock exists, update it; otherwise, add a new one.
+      // Update UI: update stock if exists; otherwise, add new one.
       setStocks((prev) => {
         const idx = prev.findIndex((s) => s.symbol === res.data.symbol);
         if (idx !== -1) {
@@ -147,11 +155,21 @@ export default function PortfolioPage() {
                     {stock.symbol} ({stock.quantity} shares)
                   </p>
                   <p className="text-gray-600 text-sm">
+                    ISIN:{" "}
+                    <Link
+                      href={`/securities/${stock.isin}`}
+                      className="underline hover:text-blue-600"
+                    >
+                      {stock.isin}
+                    </Link>
+                  </p>
+                  <p className="text-gray-600 text-sm">
                     Price: $
                     {stock.price !== undefined
                       ? stock.price.toFixed(2)
                       : "N/A"}{" "}
-                    | Updated: {new Date(stock.timestamp).toLocaleString()}
+                    | Updated:{" "}
+                    {new Date(stock.timestamp).toLocaleString()}
                   </p>
                 </div>
                 <button

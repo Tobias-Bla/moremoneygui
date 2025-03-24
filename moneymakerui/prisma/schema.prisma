@@ -17,19 +17,37 @@ model StockPrice {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String?
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id          String           @id @default(uuid())
+  name        String?
+  email       String           @unique
+  password    String
+  image       String?
+  createdAt   DateTime         @default(now())
+  // Add a relation field for preferences (optional)
+  preferences UserPreferences?
 }
+
 
 model UserStock {
   id        String   @id @default(uuid())
   email     String
   symbol    String
+  isin      String?
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
 
   @@unique([email, symbol], name: "email_symbol")
+}
+
+model UserPreferences {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  riskTolerance     String?
+  investmentHorizon Int?
+  preferredSectors  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Define the relation: userId references User.id
+  user              User     @relation(fields: [userId], references: [id])
 }

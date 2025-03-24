@@ -1,10 +1,38 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import React from "react";
+import React, { useState } from "react";
+import Button from "@/components/Button"; // Adjust the path based on your project structure
 
 const ProfilePage: React.FC = () => {
   const { data: session } = useSession();
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "account" | "preferences"
+  >("profile");
+
+  // Handlers (change password, avatar, delete account, etc.)
+  const handleChangePassword = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Change password logic
+  };
+
+  const handleAvatarChange = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Change avatar logic
+  };
+
+  const handleDeleteAccount = () => {
+    if (
+      confirm("Are you sure you want to delete your account? This cannot be undone.")
+    ) {
+      // Delete account logic
+    }
+  };
+
+  const handlePreferencesUpdate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Update preferences logic
+  };
 
   if (!session) {
     return (
@@ -18,50 +46,148 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md">
+      <div className="max-w-4xl mx-auto w-full p-6">
+        <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold text-center mb-6">User Profile</h2>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-32 h-32">
-                <img
-                  src={session?.user?.image || "/default-avatar.png"}
-                  alt="User Avatar"
-                  className="w-full h-full object-cover rounded-full"
-                />
+
+          {/* Tabs */}
+          <div className="flex justify-center mb-6 space-x-2">
+            <Button
+              variant={activeTab === "profile" ? "primary" : "secondary"}
+              onClick={() => setActiveTab("profile")}
+            >
+              Profile
+            </Button>
+            <Button
+              variant={activeTab === "account" ? "primary" : "secondary"}
+              onClick={() => setActiveTab("account")}
+            >
+              Account Settings
+            </Button>
+            <Button
+              variant={activeTab === "preferences" ? "primary" : "secondary"}
+              onClick={() => setActiveTab("preferences")}
+            >
+              Preferences
+            </Button>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === "profile" && (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-32 h-32">
+                  <img
+                    src={session.user?.image || "/default-avatar.png"}
+                    alt="User Avatar"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{session.user?.name}</h3>
+                  <p className="text-gray-500">{session.user?.email}</p>
+                </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "account" && (
+            <div className="space-y-8">
+              {/* Change Password */}
               <div>
-                <h3 className="text-xl font-semibold">{session?.user?.name}</h3>
-                <p className="text-gray-500">{session?.user?.email}</p>
+                <h4 className="text-xl font-bold mb-2">Change Password</h4>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <input
+                    type="password"
+                    placeholder="Current Password"
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm New Password"
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                  <Button type="submit" variant="primary">
+                    Update Password
+                  </Button>
+                </form>
+              </div>
+
+              {/* Change Avatar */}
+              <div>
+                <h4 className="text-xl font-bold mb-2">Change Avatar</h4>
+                <form onSubmit={handleAvatarChange} className="space-y-4">
+                  <input type="file" accept="image/*" className="w-full" required />
+                  <Button type="submit" variant="primary">
+                    Update Avatar
+                  </Button>
+                </form>
+              </div>
+
+              {/* Delete Account */}
+              <div>
+                <h4 className="text-xl font-bold mb-2">Delete Account</h4>
+                <Button onClick={handleDeleteAccount} variant="danger">
+                  Delete Account
+                </Button>
               </div>
             </div>
+          )}
 
-            {/* Display more user info */}
-            <div>
-              <h4 className="font-semibold text-lg mt-4">User Info</h4>
-              <div className="space-y-2">
-                <p>
-                  <strong>Name:</strong> {session?.user?.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {session?.user?.email}
-                </p>
-                <p>
-                  <strong>Username:</strong> {session?.user?.name}
-                </p>
-              </div>
+          {activeTab === "preferences" && (
+            <div className="space-y-6">
+              <h4 className="text-xl font-bold mb-2">
+                Portfolio Optimization Preferences
+              </h4>
+              <form onSubmit={handlePreferencesUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700">Risk Tolerance</label>
+                  <select className="w-full p-2 border rounded">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-700">
+                    Investment Horizon (Years)
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700">
+                    Preferred Sectors
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Technology, Healthcare"
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                <Button type="submit" variant="primary">
+                  Save Preferences
+                </Button>
+              </form>
             </div>
+          )}
 
-            {/* Sign Out Button */}
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={() => signOut()}
-                className="bg-red-500 text-white px-4 py-2 rounded"
-              >
-                Sign Out
-              </button>
-            </div>
+          {/* Sign Out */}
+          <div className="flex justify-center mt-8">
+            <Button onClick={() => signOut()} variant="secondary">
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>

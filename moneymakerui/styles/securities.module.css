@@ -1,0 +1,22 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  
+  .header {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+  }
+  
+  .overview,
+  .chart,
+  .details {
+    margin-bottom: 2rem;
+  }
+  
+  .container h1,
+  .container h2 {
+    margin: 0.5rem 0;
+  }
+  

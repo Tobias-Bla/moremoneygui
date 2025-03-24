@@ -1,15 +1,13 @@
-"use client"; // ✅ Required for useSession()
+"use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
-import { FaChartPie, FaUserAlt, FaBriefcase } from "react-icons/fa";
+import Button from "@/components/Button"; // Adjust the path as needed
 
 const Header = () => {
   const { data: session } = useSession();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,7 +16,6 @@ const Header = () => {
 
   async function handleLogout() {
     await signOut({ redirect: false });
-    router.push("/login");
   }
 
   return (
@@ -28,7 +25,7 @@ const Header = () => {
         <Link href="/">
           <Image
             src="/images/logo.svg"
-            alt="MoreMoney Logo"
+            alt="Logo"
             width={191}
             height={20}
             priority
@@ -36,50 +33,30 @@ const Header = () => {
         </Link>
       </div>
 
-      {/* Middle: Navigation Menu */}
-      <nav className="flex space-x-4">
-        <Link
-          href="/dashboard"
-          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
-        >
-          <FaChartPie className="mr-2 text-xl" />
+      {/* Center: Navigation Menu */}
+      <nav className="hidden md:flex space-x-4">
+        <Link href="/dashboard" className="hover:text-gray-300">
           Dashboard
         </Link>
-        <Link
-          href="/dashboard/portfolio"
-          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
-        >
-          <FaBriefcase className="mr-2 text-xl" />
-          My Portfolio
+        <Link href="/portfolio" className="hover:text-gray-300">
+          Portfolio
         </Link>
-        <Link
-          href="/profile"
-          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
-        >
-          <FaUserAlt className="mr-2 text-xl" />
+        <Link href="/profile" className="hover:text-gray-300">
           Profile
         </Link>
-        <Link
-          href="/market-trends"
-          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
-        >
-          <FaUserAlt className="mr-2 text-xl" />
+        <Link href="/market-trends" className="hover:text-gray-300">
           Market Trends
         </Link>
-        <Link
-          href="/about"
-          className="flex items-center text-lg hover:bg-gray-700 p-2 rounded-md transition-colors"
-        >
-          <FaUserAlt className="mr-2 text-xl" />
+        <Link href="/about" className="hover:text-gray-300">
           About Us
         </Link>
       </nav>
 
-      {/* Right: User Info / Logout or Sign Up */}
-      <div className="flex items-center">
+      {/* Right: Authentication Actions */}
+      <div className="flex items-center space-x-2">
         {mounted && session?.user ? (
           <>
-            <span className="mr-3">
+            <span className="hidden md:inline mr-3">
               Welcome, {session.user.name || "User"}
             </span>
             <Image
@@ -89,20 +66,19 @@ const Header = () => {
               height={32}
               className="w-8 h-8 rounded-full"
             />
-            <button
-              onClick={handleLogout}
-              className="ml-4 bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-md transition"
-            >
+            <Button variant="danger" onClick={handleLogout}>
               Logout
-            </button>
+            </Button>
           </>
         ) : (
-          <Link
-            href="/signup"
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition"
-          >
-            Sign Up
-          </Link>
+          <>
+            <Link href="/login">
+              <Button variant="primary">Sign In</Button>
+            </Link>
+            <Link href="/signup">
+              <Button variant="secondary">Sign Up</Button>
+            </Link>
+          </>
         )}
       </div>
     </header>
