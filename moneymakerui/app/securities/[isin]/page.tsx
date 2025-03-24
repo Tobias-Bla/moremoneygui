@@ -35,32 +35,34 @@ export async function generateMetadata({
   };
 }
 
-export default async function SecurityPage({ params }: InvestmentPageProps) {
-    const data = await getData(params.isin);
-    return (
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <h1>{data.name}</h1>
-          <p>ISIN: {params.isin}</p>
-        </header>
-  
-        <section className={styles.overview}>
-          <h2>Overview</h2>
-          <p>Current Price: {data.currentPrice}</p>
-          <p>Market Cap: {data.marketCap}</p>
-        </section>
-  
-        <section className={styles.chart}>
-          <h2>Performance Chart</h2>
-          {/* Integrate your chart component here */}
-        </section>
-  
-        <section className={styles.details}>
-          <h2>Details</h2>
-          <p>{data.description}</p>
-          {/* More detailed info about the security */}
-        </section>
-      </div>
-    );
-  }
-  
+// Disable the unused-variable rule for the destructured `isin` below
+export default async function SecurityPage({
+  params: { isin }, // eslint-disable-line @typescript-eslint/no-unused-vars
+}: InvestmentPageProps) {
+  const data = await getData(isin);
+  return (
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1>{data.name}</h1>
+        <p>ISIN: {isin}</p>
+      </header>
+
+      <section className={styles.overview}>
+        <h2>Overview</h2>
+        <p>Current Price: {data.currentPrice}</p>
+        <p>Market Cap: {data.marketCap}</p>
+      </section>
+
+      <section className={styles.chart}>
+        <h2>Performance Chart</h2>
+        {/* Integrate your chart component here */}
+      </section>
+
+      <section className={styles.details}>
+        <h2>Details</h2>
+        <p>{data.description}</p>
+        {/* More detailed info about the security */}
+      </section>
+    </div>
+  );
+}

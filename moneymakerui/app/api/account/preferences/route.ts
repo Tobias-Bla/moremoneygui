@@ -5,7 +5,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
-// GET handler – _req is unused so we prefix it with an underscore.
+// GET handler – we prefix the unused request parameter with an underscore.
 export async function GET(_req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) {
@@ -23,7 +23,7 @@ export async function GET(_req: Request) {
   }
 }
 
-// Define an interface for the expected request body.
+// Define an interface for the expected POST body.
 interface PreferencesBody {
   riskTolerance: string;
   investmentHorizon?: number | string | null;
@@ -36,8 +36,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  // Type the request body using the PreferencesBody interface.
-  const body = (await req.json()) as PreferencesBody;
+  // Explicitly type the parsed JSON as PreferencesBody.
+  const body: PreferencesBody = await req.json();
+
   const { riskTolerance, investmentHorizon, preferredSectors } = body;
 
   try {
