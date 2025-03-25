@@ -1,6 +1,6 @@
-// app/securities/[isin]/page.tsx
 import { Metadata } from "next";
 import styles from "@/styles/securities.module.css";
+import type { PageProps } from "@/types";
 
 interface InvestmentData {
   name: string;
@@ -9,9 +9,9 @@ interface InvestmentData {
   description: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Fetch data based on ISIN
+// eslint-disable-next-line @typescript-eslint/no-unused-vars// app/securities/[isin]/page.tsx
 async function getData(isin: string): Promise<InvestmentData> {
-  // Fetch real data here
   return {
     name: "Sample Security",
     currentPrice: "100.00 EUR",
@@ -20,15 +20,15 @@ async function getData(isin: string): Promise<InvestmentData> {
   };
 }
 
-export async function generateMetadata({ params }: { params: { isin: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const data = await getData(params.isin);
   return {
     title: `Investieren - ${data.name} (${params.isin})`,
   };
 }
 
-// ❗ Fix: Explicit inline typing as Next.js expects
-export default async function SecurityPage({ params }: { params: { isin: string } }) {
+// Explicitly typed against Next.js built-in PageProps
+export default async function SecurityPage({ params }: PageProps) {
   const data = await getData(params.isin);
 
   return (
