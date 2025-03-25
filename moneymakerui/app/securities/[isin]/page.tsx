@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // app/securities/[isin]/page.tsx
-import { Metadata } from 'next';
-import styles from '@/styles/securities.module.css';
+import { Metadata } from "next";
+import styles from "@/styles/securities.module.css";
 
 interface InvestmentData {
   name: string;
@@ -10,18 +9,16 @@ interface InvestmentData {
   description: string;
 }
 
-// Fetch data based on ISIN (replace this with your real fetch logic)
 async function getData(isin: string): Promise<InvestmentData> {
+  // Fetch real data here
   return {
-    name: 'Sample Security',
-    currentPrice: '100.00 EUR',
-    marketCap: '1B EUR',
-    description:
-      'This is a sample description of the security. Here you can add more detailed information similar to the page you referenced.',
+    name: "Sample Security",
+    currentPrice: "100.00 EUR",
+    marketCap: "1B EUR",
+    description: "Detailed security description here...",
   };
 }
 
-// Dynamically set metadata for this route.
 export async function generateMetadata({ params }: { params: { isin: string } }): Promise<Metadata> {
   const data = await getData(params.isin);
   return {
@@ -29,7 +26,7 @@ export async function generateMetadata({ params }: { params: { isin: string } })
   };
 }
 
-// Correct inline typing expected by Next.js
+// ❗ Fix: Explicit inline typing as Next.js expects
 export default async function SecurityPage({ params }: { params: { isin: string } }) {
   const data = await getData(params.isin);
 
@@ -48,13 +45,11 @@ export default async function SecurityPage({ params }: { params: { isin: string 
 
       <section className={styles.chart}>
         <h2>Performance Chart</h2>
-        {/* Integrate your chart component here */}
       </section>
 
       <section className={styles.details}>
         <h2>Details</h2>
         <p>{data.description}</p>
-        {/* More detailed info about the security */}
       </section>
     </div>
   );
