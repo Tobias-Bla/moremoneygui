@@ -9,6 +9,7 @@ interface InvestmentData {
   description: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getData(isin: string): Promise<InvestmentData> {
   // Fetch real data here
   return {
