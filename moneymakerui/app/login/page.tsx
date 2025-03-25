@@ -34,9 +34,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900">
-      <div className="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-md">
-        <h1 className="text-3xl font-semibold text-center mb-4 text-white">Login</h1>
+  <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 m-0 p-0">
+    <div className="w-full max-w-md p-6 bg-gray-800 rounded-lg shadow-md m-0"> <h1 className="text-3xl font-semibold text-center mb-4 text-white">Login</h1>
 
         {error && <p className="text-red-500 text-center">{error}</p>}
 
