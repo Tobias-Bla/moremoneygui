@@ -10,7 +10,7 @@ interface InvestmentData {
 }
 
 // Fetch data based on ISIN
-// eslint-disable-next-line @typescript-eslint/no-unused-vars// app/securities/[isin]/page.tsx
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getData(isin: string): Promise<InvestmentData> {
   return {
     name: "Sample Security",

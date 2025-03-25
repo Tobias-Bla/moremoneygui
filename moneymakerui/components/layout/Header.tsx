@@ -4,7 +4,8 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import Button from "@/components/Button"; // Adjust the path as needed
+import { Button } from "@/components/ui/Button";
+
 
 const Header = () => {
   const { data: session } = useSession();
