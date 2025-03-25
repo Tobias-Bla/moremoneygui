@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import React, { useState } from "react";
-import Button from "@/components/Button"; // Adjust the path based on your project structure
+import { Button } from "@/components/ui/Button";
 
 const ProfilePage: React.FC = () => {
   const { data: session } = useSession();
