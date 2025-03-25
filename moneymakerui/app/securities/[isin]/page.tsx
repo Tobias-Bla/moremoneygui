@@ -10,12 +10,7 @@ interface InvestmentData {
   description: string;
 }
 
-interface InvestmentPageProps {
-  params: { isin: string };
-}
-
-// A helper function to fetch data based on the ISIN.
-// Replace this with your real data fetching logic.
+// Fetch data based on ISIN (replace this with your real fetch logic)
 async function getData(isin: string): Promise<InvestmentData> {
   return {
     name: 'Sample Security',
@@ -26,21 +21,23 @@ async function getData(isin: string): Promise<InvestmentData> {
   };
 }
 
-// Dynamically set metadata (like the page title) for this route.
-export async function generateMetadata({ params }: InvestmentPageProps): Promise<Metadata> {
+// Dynamically set metadata for this route.
+export async function generateMetadata({ params }: { params: { isin: string } }): Promise<Metadata> {
   const data = await getData(params.isin);
   return {
     title: `Investieren - ${data.name} (${params.isin})`,
   };
 }
 
-export default async function SecurityPage({ params: { isin } }: InvestmentPageProps) {
-  const data = await getData(isin);
+// Correct inline typing expected by Next.js
+export default async function SecurityPage({ params }: { params: { isin: string } }) {
+  const data = await getData(params.isin);
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h1>{data.name}</h1>
-        <p>ISIN: {isin}</p>
+        <p>ISIN: {params.isin}</p>
       </header>
 
       <section className={styles.overview}>
