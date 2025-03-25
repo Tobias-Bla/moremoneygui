@@ -1,9 +1,15 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
-import type { NextRequest } from "next/server";
+import NextAuth from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 
 const handler = NextAuth(authOptions);
 
-export const GET = (req: NextRequest) => handler(req);
-export const POST = (req: NextRequest) => handler(req);
+// ✅ Correct handling for NextAuth with App Router
+export async function GET(req: NextRequest, { params }: { params: { nextauth: string[] } }) {
+  return handler(req, { params });
+}
+
+export async function POST(req: NextRequest, { params }: { params: { nextauth: string[] } }) {
+  return handler(req, { params });
+}
