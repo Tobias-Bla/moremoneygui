@@ -22,8 +22,9 @@
   --popover-foreground: var(--foreground);
 
   /* Primary and Secondary Colors */
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.255 0.15 264.695); /* vibrant purple */
+  --primaryHover: oklch(0.3 0.15 264.695); /* slightly lighter purple for hover */
+  --primary-foreground: oklch(1 0 0); /* pure white text */
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
 
@@ -67,19 +68,22 @@
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
+
+  --primary: oklch(0.7 0.15 264.695); /* slightly lighter purple for contrast */
+  --primaryHover: oklch(0.8 0.15 264.695); /* even lighter purple on hover */
+  --primary-foreground: oklch(0.129 0.042 264.695); /* dark text for visibility */
   
-  --primary: var(--foreground);
-  --primary-foreground: oklch(0.208 0.042 265.755);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: var(--foreground);
-  
+
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(1 0 0);
-  
+
   --border: oklch(0.279 0.041 260.031);
   --input: var(--border);
   --ring: oklch(0.446 0.043 257.281);
 }
+
 
 /* Inline Theme Variables for Easy Access */
 @theme inline {

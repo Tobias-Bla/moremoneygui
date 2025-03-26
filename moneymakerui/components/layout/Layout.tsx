@@ -2,7 +2,6 @@
 "use client";
 
 import Header from "./Header";
-import Sidebar from "./Sidebar";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 

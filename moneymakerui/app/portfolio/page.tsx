@@ -23,14 +23,12 @@ export default function PortfolioPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fetch user-specific stocks on page load
   useEffect(() => {
     if (session?.user?.email) {
       setLoading(true);
       axios
         .get("/api/portfolio", { withCredentials: true })
         .then((res) => {
-          console.log("✅ Fetched Stocks:", res.data);
           setStocks(res.data);
         })
         .catch((error) => {
@@ -41,7 +39,6 @@ export default function PortfolioPage() {
     }
   }, [session]);
 
-  // Add stock to portfolio
   const addStock = async () => {
     if (!selectedSymbol || !quantity) {
       alert("Please select a stock and enter a valid quantity.");
@@ -58,17 +55,10 @@ export default function PortfolioPage() {
         { withCredentials: true }
       );
 
-      // Expecting the API to now return an object that includes the ISIN
-      if (
-        !res.data ||
-        !res.data.symbol ||
-        !res.data.quantity ||
-        !res.data.isin
-      ) {
+      if (!res.data || !res.data.symbol || !res.data.quantity || !res.data.isin) {
         throw new Error("Invalid API response structure");
       }
 
-      // Update UI: update stock if exists; otherwise, add new one.
       setStocks((prev) => {
         const idx = prev.findIndex((s) => s.symbol === res.data.symbol);
         if (idx !== -1) {
@@ -81,12 +71,11 @@ export default function PortfolioPage() {
       setSelectedSymbol("");
       setQuantity("");
     } catch (error) {
-      console.error("❌ Error adding stock:", error);
+      console.error("Error adding stock:", error);
       setErrorMessage("Failed to add stock");
     }
   };
 
-  // Remove stock from portfolio
   const removeStock = async (symbol: string) => {
     try {
       await axios.delete("/api/portfolio", {
@@ -95,24 +84,23 @@ export default function PortfolioPage() {
       });
       setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
     } catch (error) {
-      console.error("❌ Error removing stock:", error);
+      console.error("Error removing stock:", error);
       setErrorMessage("Failed to remove stock");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-3xl font-semibold text-center mb-6 text-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-6">
+      <div className="w-full max-w-2xl bg-card text-card-foreground p-6 rounded-lg shadow-md">
+        <h1 className="text-3xl font-semibold text-center mb-6">
           My Portfolio
         </h1>
 
-        {/* Stock Selection */}
         <div className="flex flex-col gap-2 mt-4">
           <select
             value={selectedSymbol}
             onChange={(e) => setSelectedSymbol(e.target.value)}
-            className="p-2 bg-gray-200 text-gray-900 rounded"
+            className="p-2 bg-input text-foreground rounded"
           >
             <option value="">Select Stock</option>
             {stockSymbols.map((symbol) => (
@@ -126,7 +114,7 @@ export default function PortfolioPage() {
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             placeholder="Enter Quantity"
-            className="p-2 bg-gray-200 text-gray-900 rounded"
+            className="p-2 bg-input text-foreground rounded"
           />
           <button
             onClick={addStock}
@@ -136,34 +124,25 @@ export default function PortfolioPage() {
           </button>
         </div>
 
-        {/* Error Message */}
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+        {loading && <p className="text-muted-foreground mt-4">Loading portfolio...</p>}
 
-        {/* Loading Indicator */}
-        {loading && <p className="text-gray-900 mt-4">Loading portfolio...</p>}
-
-        {/* Portfolio Overview */}
         <ul className="space-y-3 mt-4">
           {stocks.length > 0 ? (
             stocks.map((stock) => (
               <li
                 key={stock.symbol}
-                className="flex justify-between items-center p-4 bg-white rounded shadow"
+                className="flex justify-between items-center p-4 bg-card text-card-foreground rounded shadow"
               >
                 <div>
-                  <p className="text-gray-900 font-medium">
-                    {stock.symbol} ({stock.quantity} shares)
-                  </p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="font-medium">{stock.symbol} ({stock.quantity} shares)</p>
+                  <p className="text-muted-foreground text-sm">
                     ISIN:{" "}
-                    <Link
-                      href={`/securities/${stock.isin}`}
-                      className="underline hover:text-blue-600"
-                    >
+                    <Link href={`/securities/${stock.isin}`} className="underline hover:text-blue-600">
                       {stock.isin}
                     </Link>
                   </p>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     Price: $
                     {stock.price !== undefined
                       ? stock.price.toFixed(2)
@@ -182,7 +161,7 @@ export default function PortfolioPage() {
             ))
           ) : (
             !loading && (
-              <p className="text-gray-600 text-center mt-4">
+              <p className="text-muted-foreground text-center mt-4">
                 No stocks added yet.
               </p>
             )
