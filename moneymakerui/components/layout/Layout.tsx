@@ -12,7 +12,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen">
-      {!hideSidebar && <Sidebar />}
       <div className="flex flex-col flex-1">
         {!hideSidebar && <Header />}
         <main className="flex-1 p-6 bg-background text-foreground">
