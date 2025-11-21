@@ -1,41 +1,28 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import prisma from "@/lib/prisma";  // Assuming you have Prisma set up
+import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// This will be your secret key for signing JWT tokens
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 
-export async function POST(request: Request) {
-  const { email, password } = await request.json();
+export async function POST(req: Request) {
+  const { email, password } = await req.json();
 
-  if (!email || !password) {
-    return NextResponse.json({ message: "Email and password are required" }, { status: 400 });
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 
-  try {
-    // Check if the user exists in the database
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+  const valid = await bcrypt.compare(password, user.passwordHash);
 
-    if (!user) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-    }
-
-    // Compare the password with bcrypt
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
-    }
-
-    // Generate a JWT token
-    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
-
-    return NextResponse.json({ message: "Login successful", token });
-  } catch (error) {
-    console.error("Error during login:", error);
-    return NextResponse.json({ message: "Something went wrong. Please try again." }, { status: 500 });
+  if (!valid) {
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
+
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  return NextResponse.json({ token });
 }

@@ -4,7 +4,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model StockPrice {
@@ -17,26 +18,29 @@ model StockPrice {
 }
 
 model User {
-  id          String           @id @default(uuid())
-  name        String?
-  email       String           @unique
-  password    String
-  image       String?
-  createdAt   DateTime         @default(now())
-  // Add a relation field for preferences (optional)
-  preferences UserPreferences?
-}
+  id           String   @id @default(uuid())
+  name         String?
+  email        String   @unique
+  passwordHash String   @map("password")
+  image        String?
+  createdAt    DateTime @default(now())
 
+  preferences  UserPreferences?
+  stocks       UserStock[]
+}
 
 model UserStock {
   id        String   @id @default(uuid())
-  email     String
+  userId    String
   symbol    String
   isin      String?
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
 
-  @@unique([email, symbol], name: "email_symbol")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, symbol], name: "user_symbol")
+  @@map("UserStock")
 }
 
 model UserPreferences {
@@ -48,6 +52,7 @@ model UserPreferences {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  // Define the relation: userId references User.id
   user              User     @relation(fields: [userId], references: [id])
+
+  @@map("UserPreferences")
 }

@@ -1,14 +1,20 @@
 // @/lib/auth.ts
-import type { NextAuthOptions, User, Account, Profile as NextAuthProfile, Session } from "next-auth";
+import type {
+  NextAuthOptions,
+  User,
+  Account,
+  Profile as NextAuthProfile,
+  Session,
+} from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 
-const prisma = new PrismaClient();
+// ⬇️ WICHTIG: zentralen Prisma-Client verwenden
+import prisma from "@/lib/prisma";
 
 interface ExtendedProfile extends NextAuthProfile {
   avatar_url?: string;
@@ -43,7 +49,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No user found with this email.");
         }
 
-        const passwordValid = await bcrypt.compare(credentials.password, user.password);
+        // ⬇️ WICHTIG: passwordHash statt password
+        const passwordValid = await bcrypt.compare(
+          credentials.password,
+          user.passwordHash,
+        );
 
         if (!passwordValid) {
           throw new Error("Invalid password.");
@@ -67,16 +77,27 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }) {
-      session.user.id = token.sub!;
+      // Achtung: dein Session-Typ muss user.id erlauben (notfalls any casten)
+      (session.user as any).id = token.sub!;
       session.user.name = token.name || token.email!;
       session.user.email = token.email!;
       session.user.image = token.picture || "/default-avatar.png";
       return session;
     },
 
-    async jwt({ token, user, account, profile }: { token: JWT; user?: User | AdapterUser; account?: Account | null; profile?: ExtendedProfile }) {
+    async jwt({
+      token,
+      user,
+      account,
+      profile,
+    }: {
+      token: JWT;
+      user?: User | AdapterUser;
+      account?: Account | null;
+      profile?: ExtendedProfile;
+    }) {
       if (account?.access_token) {
-        token.accessToken = account.access_token;
+        (token as any).accessToken = account.access_token;
       }
 
       if (user) {
