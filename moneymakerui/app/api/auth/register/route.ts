@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
-
 export async function POST(req: Request) {
   try {
     const { email, password, name } = await req.json();
