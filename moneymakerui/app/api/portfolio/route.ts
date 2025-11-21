@@ -1,76 +1,174 @@
+// app/api/portfolio/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// -------------------------------
+// GET: Portfolio abrufen
+// -------------------------------
 export async function GET(_req: NextRequest) {
-  const session = await getServerSession();
-  const email = session?.user?.email;
-  if (!email) {
-    return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.email) {
+    return NextResponse.json(
+      { error: "User not authenticated" },
+      { status: 401 }
+    );
   }
+
   try {
-    const stocks = await prisma.userStock.findMany({
-      where: { email },
+    // 1️⃣ User holen
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
     });
-    return NextResponse.json(stocks);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // 2️⃣ Portfolio nach userId
+    const stocks = await prisma.userStock.findMany({
+      where: { userId: user.id },
+    });
+
+    return NextResponse.json(stocks, { status: 200 });
   } catch (error) {
     console.error("GET error:", error);
-    return NextResponse.json({ error: "Unable to fetch stocks" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to fetch stocks" },
+      { status: 500 }
+    );
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// -------------------------------
+// POST: Aktie hinzufügen / erhöhen
+// -------------------------------
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
-  const email = session?.user?.email;
-  if (!email) {
-    return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.email) {
+    return NextResponse.json(
+      { error: "User not authenticated" },
+      { status: 401 }
+    );
   }
+
   try {
     const { symbol, quantity } = await req.json();
+
     if (!symbol || !quantity || quantity <= 0) {
       return NextResponse.json(
         { error: "Valid stock symbol and quantity are required" },
         { status: 400 }
       );
     }
+
+    // 1️⃣ User holen
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // 2️⃣ Upsert via (userId, symbol)
     const stock = await prisma.userStock.upsert({
-      where: { email_symbol: { email, symbol } },
-      update: { quantity: { increment: quantity } },
-      create: { email, symbol, quantity, createdAt: new Date() },
+      where: {
+        user_symbol: {
+          userId: user.id,
+          symbol,
+        },
+      },
+      update: {
+        quantity: { increment: quantity },
+      },
+      create: {
+        userId: user.id,
+        symbol,
+        quantity,
+        createdAt: new Date(),
+      },
     });
-    return NextResponse.json({
-      symbol: stock.symbol,
-      quantity: stock.quantity,
-      createdAt: stock.createdAt,
-    });
+
+    return NextResponse.json(
+      {
+        symbol: stock.symbol,
+        quantity: stock.quantity,
+        createdAt: stock.createdAt,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("POST error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// -------------------------------
+// DELETE: Aktie entfernen
+// -------------------------------
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession();
-  const email = session?.user?.email;
-  if (!email) {
-    return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.email) {
+    return NextResponse.json(
+      { error: "User not authenticated" },
+      { status: 401 }
+    );
   }
+
   try {
     const { symbol } = await req.json();
+
     if (!symbol) {
-      return NextResponse.json({ error: "Stock symbol is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Stock symbol is required" },
+        { status: 400 }
+      );
     }
-    await prisma.userStock.deleteMany({
-      where: { email, symbol },
+
+    // 1️⃣ User holen
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
     });
-    return NextResponse.json({ message: "Stock removed successfully" });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // 2️⃣ Delete via userId
+    await prisma.userStock.deleteMany({
+      where: {
+        userId: user.id,
+        symbol,
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Stock removed successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("DELETE error:", error);
-    return NextResponse.json({ error: "Unable to remove stock" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to remove stock" },
+      { status: 500 }
+    );
   }
 }
