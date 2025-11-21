@@ -23,21 +23,37 @@ export default function PortfolioPage() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (session?.user?.email) {
-      setLoading(true);
-      axios
-        .get("/api/portfolio", { withCredentials: true })
-        .then((res) => {
-          setStocks(res.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching user portfolio:", error);
-          setErrorMessage("Failed to load portfolio");
-        })
-        .finally(() => setLoading(false));
+  const fetchPortfolio = async () => {
+    if (!session?.user?.email) return;
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const res = await axios.get("/api/portfolio", { withCredentials: true });
+
+      // Falls deine API { stocks: [...] } zurückgibt, hier anpassen:
+      const data = Array.isArray(res.data) ? res.data : res.data.stocks;
+
+      setStocks(data || []);
+    } catch (error) {
+      console.error("Error fetching user portfolio:", error);
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(
+          error.response?.data?.error || "Failed to load portfolio"
+        );
+      } else {
+        setErrorMessage("Failed to load portfolio");
+      }
+    } finally {
+      setLoading(false);
     }
-  }, [session]);
+  };
+
+  useEffect(() => {
+    fetchPortfolio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.email]);
 
   const addStock = async () => {
     if (!selectedSymbol || !quantity) {
@@ -46,7 +62,8 @@ export default function PortfolioPage() {
     }
 
     try {
-      const res = await axios.post(
+      setErrorMessage("");
+      await axios.post(
         "/api/portfolio",
         {
           symbol: selectedSymbol,
@@ -55,37 +72,44 @@ export default function PortfolioPage() {
         { withCredentials: true }
       );
 
-      if (!res.data || !res.data.symbol || !res.data.quantity || !res.data.isin) {
-        throw new Error("Invalid API response structure");
-      }
+      // Statt auf die Response-Struktur zu vertrauen, einfach neu laden:
+      await fetchPortfolio();
 
-      setStocks((prev) => {
-        const idx = prev.findIndex((s) => s.symbol === res.data.symbol);
-        if (idx !== -1) {
-          const updated = [...prev];
-          updated[idx] = res.data;
-          return updated;
-        }
-        return [...prev, res.data];
-      });
       setSelectedSymbol("");
       setQuantity("");
     } catch (error) {
       console.error("Error adding stock:", error);
-      setErrorMessage("Failed to add stock");
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(
+          error.response?.data?.error || "Failed to add stock"
+        );
+      } else {
+        setErrorMessage("Failed to add stock");
+      }
     }
   };
 
   const removeStock = async (symbol: string) => {
     try {
+      setErrorMessage("");
       await axios.delete("/api/portfolio", {
         data: { symbol },
         withCredentials: true,
       });
+
+      // Entweder lokal updaten...
       setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
+      // ...oder sauber:
+      // await fetchPortfolio();
     } catch (error) {
       console.error("Error removing stock:", error);
-      setErrorMessage("Failed to remove stock");
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(
+          error.response?.data?.error || "Failed to remove stock"
+        );
+      } else {
+        setErrorMessage("Failed to remove stock");
+      }
     }
   };
 
@@ -125,7 +149,11 @@ export default function PortfolioPage() {
         </div>
 
         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-        {loading && <p className="text-muted-foreground mt-4">Loading portfolio...</p>}
+        {loading && (
+          <p className="text-muted-foreground mt-4">
+            Loading portfolio...
+          </p>
+        )}
 
         <ul className="space-y-3 mt-4">
           {stocks.length > 0 ? (
@@ -135,10 +163,15 @@ export default function PortfolioPage() {
                 className="flex justify-between items-center p-4 bg-card text-card-foreground rounded shadow"
               >
                 <div>
-                  <p className="font-medium">{stock.symbol} ({stock.quantity} shares)</p>
+                  <p className="font-medium">
+                    {stock.symbol} ({stock.quantity} shares)
+                  </p>
                   <p className="text-muted-foreground text-sm">
                     ISIN:{" "}
-                    <Link href={`/securities/${stock.isin}`} className="underline hover:text-blue-600">
+                    <Link
+                      href={`/securities/${stock.isin}`}
+                      className="underline hover:text-blue-600"
+                    >
                       {stock.isin}
                     </Link>
                   </p>
@@ -148,7 +181,9 @@ export default function PortfolioPage() {
                       ? stock.price.toFixed(2)
                       : "N/A"}{" "}
                     | Updated:{" "}
-                    {new Date(stock.timestamp).toLocaleString()}
+                    {stock.timestamp
+                      ? new Date(stock.timestamp).toLocaleString()
+                      : "N/A"}
                   </p>
                 </div>
                 <button

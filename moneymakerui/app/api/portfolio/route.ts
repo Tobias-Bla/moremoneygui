@@ -14,7 +14,7 @@ export async function GET() {
   if (!session || !session.user?.email) {
     return NextResponse.json(
       { error: "User not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -26,7 +26,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function GET() {
     console.error("GET /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Unable to fetch stocks" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -53,20 +53,24 @@ export async function POST(req: NextRequest) {
   if (!session || !session.user?.email) {
     return NextResponse.json(
       { error: "User not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
   try {
-    const { symbol, quantity } = await req.json() as {
+    const body = (await req.json()) as {
       symbol?: string;
       quantity?: number;
     };
 
-    if (!symbol || !quantity || quantity <= 0) {
+    const symbol = body.symbol?.toUpperCase();
+    // wenn quantity nicht mitgeschickt wird → default 1
+    const quantity = body.quantity ?? 1;
+
+    if (!symbol || quantity <= 0) {
       return NextResponse.json(
         { error: "Valid stock symbol and quantity are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -105,13 +109,13 @@ export async function POST(req: NextRequest) {
         quantity: stock.quantity,
         createdAt: stock.createdAt,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("POST /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -125,17 +129,18 @@ export async function DELETE(req: NextRequest) {
   if (!session || !session.user?.email) {
     return NextResponse.json(
       { error: "User not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
   try {
-    const { symbol } = await req.json() as { symbol?: string };
+    const body = (await req.json()) as { symbol?: string };
+    const symbol = body.symbol?.toUpperCase();
 
     if (!symbol) {
       return NextResponse.json(
         { error: "Stock symbol is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -146,7 +151,7 @@ export async function DELETE(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -159,13 +164,13 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json(
       { message: "Stock removed successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("DELETE /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Unable to remove stock" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
