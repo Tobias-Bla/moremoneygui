@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState, ChangeEvent, ReactNode } from "react";
 import axios from "axios";
 import { Line, Pie, Bar } from "react-chartjs-2";
 import {
@@ -42,6 +42,37 @@ interface PortfolioItem {
   symbol: string;
   quantity: number;
 }
+
+interface CardProps {
+  title: string;
+  subtitle?: string;
+  onClose?: () => void;
+  children: ReactNode;
+}
+
+const Card = ({ title, subtitle, onClose, children }: CardProps) => (
+  <section className="relative rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-lg shadow-black/40 backdrop-blur-md">
+    {onClose && (
+      <button
+        type="button"
+        aria-label="Remove widget"
+        className="absolute right-3 top-3 text-xs font-medium text-slate-500 transition hover:text-rose-400"
+        onClick={onClose}
+      >
+        ✕
+      </button>
+    )}
+    <header className="mb-4 space-y-1">
+      <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="text-xs text-slate-400">{subtitle}</p>
+      )}
+    </header>
+    {children}
+  </section>
+);
 
 const timeSpanOptions: { label: string; value: string }[] = [
   { label: "All Time", value: "ALL" },
@@ -89,13 +120,13 @@ function getStartDateForTimeSpan(span: string): Date {
 
 function getColorForSymbol(symbol: string): string {
   const colors = [
-    "rgba(255, 99, 132, 0.8)", // Red
-    "rgba(54, 162, 235, 0.8)", // Blue
-    "rgba(255, 206, 86, 0.8)", // Yellow
-    "rgba(75, 192, 192, 0.8)", // Green
-    "rgba(153, 102, 255, 0.8)", // Purple
-    "rgba(255, 159, 64, 0.8)", // Orange
-    "rgba(199, 199, 199, 0.8)", // Gray
+    "rgba(239, 68, 68, 0.9)", // Red
+    "rgba(59, 130, 246, 0.9)", // Blue
+    "rgba(234, 179, 8, 0.9)", // Yellow
+    "rgba(16, 185, 129, 0.9)", // Emerald
+    "rgba(129, 140, 248, 0.9)", // Indigo
+    "rgba(249, 115, 22, 0.9)", // Orange
+    "rgba(148, 163, 184, 0.9)", // Slate
   ];
   const index = Math.abs(hashCode(symbol)) % colors.length;
   return colors[index];
@@ -130,7 +161,7 @@ export default function StockDashboard() {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("dashboardSelectedCharts");
       if (saved) {
-        const parsed = JSON.parse(saved);
+        const parsed: string[] = JSON.parse(saved);
         if (parsed.length === 0) {
           setSelectedCharts(["portfolioOverview", "stockValueSummary"]);
         } else {
@@ -145,7 +176,10 @@ export default function StockDashboard() {
   // Persist settings whenever they change.
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("dashboardSelectedCharts", JSON.stringify(selectedCharts));
+      localStorage.setItem(
+        "dashboardSelectedCharts",
+        JSON.stringify(selectedCharts)
+      );
     }
   }, [selectedCharts]);
 
@@ -163,7 +197,9 @@ export default function StockDashboard() {
 
   // Remove a component by its index.
   const removeDashboardComponent = (indexToRemove: number) => {
-    setSelectedCharts((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setSelectedCharts((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
   };
 
   // Fetch stock prices.
@@ -183,13 +219,16 @@ export default function StockDashboard() {
   }, []);
 
   // Group stock prices by symbol.
-  const groupedData = stockPrices.reduce((acc: { [key: string]: StockPrice[] }, curr) => {
-    if (!acc[curr.symbol]) {
-      acc[curr.symbol] = [];
-    }
-    acc[curr.symbol].push(curr);
-    return acc;
-  }, {} as { [key: string]: StockPrice[] });
+  const groupedData = stockPrices.reduce(
+    (acc: { [key: string]: StockPrice[] }, curr) => {
+      if (!acc[curr.symbol]) {
+        acc[curr.symbol] = [];
+      }
+      acc[curr.symbol].push(curr);
+      return acc;
+    },
+    {} as { [key: string]: StockPrice[] }
+  );
 
   useEffect(() => {
     const allSymbols = Object.keys(groupedData);
@@ -210,7 +249,10 @@ export default function StockDashboard() {
   const lineDatasets = selectedSymbols.map((symbol) => {
     const dataForSymbol = (groupedData[symbol] || [])
       .filter((dp) => new Date(dp.timestamp) >= startDate)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
     return {
       label: symbol,
       data: dataForSymbol.map((dp) => ({
@@ -228,8 +270,19 @@ export default function StockDashboard() {
         type: "time" as const,
         time: { unit: timeUnit, tooltipFormat: "PPpp" },
         title: { display: true, text: "Timestamp" },
+        grid: { color: "rgba(148, 163, 184, 0.2)" },
       },
-      y: { title: { display: true, text: "Price ($)" } },
+      y: {
+        title: { display: true, text: "Price ($)" },
+        grid: { color: "rgba(15, 23, 42, 0.8)" },
+      },
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "#e5e7eb",
+        },
+      },
     },
   };
 
@@ -262,8 +315,22 @@ export default function StockDashboard() {
   };
   const barChartOptions = {
     scales: {
-      y: { title: { display: true, text: "Value ($)" } },
-      x: { title: { display: true, text: "Stock Symbol" } },
+      y: {
+        title: { display: true, text: "Value ($)" },
+        grid: { color: "rgba(15, 23, 42, 0.8)" },
+      },
+      x: {
+        title: { display: true, text: "Stock Symbol" },
+        grid: { display: false },
+        ticks: { color: "#cbd5f5" },
+      },
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "#e5e7eb",
+        },
+      },
     },
   };
 
@@ -275,8 +342,8 @@ export default function StockDashboard() {
         label: "Portfolio Composition",
         data: portfolio.map((item) => item.quantity),
         backgroundColor: portfolio.map((item) => getColorForSymbol(item.symbol)),
-        borderColor: portfolio.map((item) => getColorForSymbol(item.symbol)),
-        borderWidth: 1,
+        borderColor: "rgba(15, 23, 42, 1)",
+        borderWidth: 2,
       },
     ],
   };
@@ -286,13 +353,19 @@ export default function StockDashboard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
-    scales: { x: { display: false }, y: { display: false } },
+    scales: {
+      x: { display: false },
+      y: { display: false },
+    },
   };
   const miniStartDate = getStartDateForTimeSpan("1D");
   const portfolioOverview = portfolio.map((item) => {
     const symbolData = (groupedData[item.symbol] || [])
       .filter((dp) => new Date(dp.timestamp) >= miniStartDate)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      )
       .map((dp) => ({
         x: new Date(dp.timestamp),
         y: parseFloat(dp.price),
@@ -306,7 +379,10 @@ export default function StockDashboard() {
   // Stock Value Summary:
   const stockValueData = portfolio.map((item) => {
     const dataForStock = (groupedData[item.symbol] || [])
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      )
       .map((dp) => ({
         x: new Date(dp.timestamp),
         y: item.quantity * parseFloat(dp.price),
@@ -318,8 +394,16 @@ export default function StockDashboard() {
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: { display: true, title: { display: true, text: "Time" } },
-      y: { display: true, title: { display: true, text: "Value ($)" } },
+      x: {
+        display: true,
+        title: { display: true, text: "Time" },
+        grid: { color: "rgba(148, 163, 184, 0.15)" },
+      },
+      y: {
+        display: true,
+        title: { display: true, text: "Value ($)" },
+        grid: { color: "rgba(15, 23, 42, 0.8)" },
+      },
     },
   };
 
@@ -328,22 +412,41 @@ export default function StockDashboard() {
     switch (component) {
       case "portfolioOverview":
         return (
-          <div className="bg-gray-200 rounded-lg p-3 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-              onClick={() => removeDashboardComponent(index)}
-            >
-              X
-            </button>
-            <h2 className="text-2xl font-semibold mb-3">Portfolio Overview</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Card
+            title="Portfolio Overview"
+            subtitle="Überblick über deine Positionen"
+            onClose={() => removeDashboardComponent(index)}
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               {portfolioOverview.map((item) => (
-                <div key={item.symbol} className="bg-gray-100 rounded-lg p-3 flex flex-col gap-1">
-                  <div className="font-bold text-lg">{item.symbol}</div>
-                  <div>Qty: {item.quantity}</div>
-                  <div>Price: ${item.latestPrice.toFixed(2)}</div>
-                  <div>Total: ${item.total.toFixed(2)}</div>
-                  <div className="w-full h-16">
+                <div
+                  key={item.symbol}
+                  className="flex flex-col gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <p className="text-sm font-semibold tracking-wide text-slate-100">
+                      {item.symbol}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Qty:{" "}
+                      <span className="font-medium text-slate-100">
+                        {item.quantity}
+                      </span>
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Price:{" "}
+                    <span className="font-medium text-emerald-400">
+                      ${item.latestPrice.toFixed(2)}
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Total:{" "}
+                    <span className="font-semibold text-slate-50">
+                      ${item.total.toFixed(2)}
+                    </span>
+                  </p>
+                  <div className="mt-2 h-16 w-full">
                     <Line
                       data={{
                         datasets: [
@@ -360,68 +463,70 @@ export default function StockDashboard() {
                   </div>
                 </div>
               ))}
-              <div className="bg-gray-300 rounded-lg p-3 flex flex-col items-center">
-                <h3 className="text-2xl font-bold">Grand Total</h3>
-                <p className="text-lg">${grandTotal.toFixed(2)}</p>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Grand Total
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-slate-50">
+                  ${grandTotal.toFixed(2)}
+                </p>
               </div>
             </div>
-          </div>
+          </Card>
         );
       case "portfolioValue":
         return (
-          <div className="bg-gray-200 rounded-lg p-3 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-              onClick={() => removeDashboardComponent(index)}
-            >
-              X
-            </button>
-            <h2 className="text-xl font-semibold mb-2">Portfolio Value</h2>
+          <Card
+            title="Portfolio Value"
+            subtitle="Wert deiner einzelnen Positionen"
+            onClose={() => removeDashboardComponent(index)}
+          >
             {portfolio.length > 0 ? (
-              <Bar data={barChartData} options={barChartOptions} />
+              <div className="h-72">
+                <Bar data={barChartData} options={barChartOptions} />
+              </div>
             ) : (
-              <p className="text-gray-500">No portfolio data available.</p>
+              <p className="text-sm text-slate-500">
+                No portfolio data available.
+              </p>
             )}
-          </div>
+          </Card>
         );
       case "portfolioComposition":
         return (
-          <div className="bg-gray-200 rounded-lg p-3 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-              onClick={() => removeDashboardComponent(index)}
-            >
-              X
-            </button>
-            <h2 className="text-xl font-semibold mb-2">Portfolio Composition</h2>
+          <Card
+            title="Portfolio Composition"
+            subtitle="Gewichtung nach Symbol"
+            onClose={() => removeDashboardComponent(index)}
+          >
             {portfolio.length > 0 ? (
-              <div className="w-full h-100">
+              <div className="mx-auto h-72 w-full max-w-md">
                 <Pie data={pieData} />
               </div>
             ) : (
-              <p className="text-gray-500">No portfolio data available.</p>
+              <p className="text-sm text-slate-500">
+                No portfolio data available.
+              </p>
             )}
-          </div>
+          </Card>
         );
       case "stockPrices":
         return (
-          <div className="bg-gray-200 rounded-lg p-3 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-              onClick={() => removeDashboardComponent(index)}
-            >
-              X
-            </button>
-            <h2 className="text-xl font-semibold mb-3">Stock Prices Over Time</h2>
-            <div className="mb-3 p-3 border rounded bg-white">
-              <h3 className="text-lg font-semibold mb-2">Chart Settings</h3>
-              <div className="flex flex-col md:flex-row gap-3">
+          <Card
+            title="Stock Prices Over Time"
+            subtitle="Kursentwicklung deiner Werte"
+            onClose={() => removeDashboardComponent(index)}
+          >
+            <div className="mb-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-200">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <label className="block mb-1">Time Span</label>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Time Span
+                  </p>
                   <select
                     value={timeSpan}
                     onChange={(e) => setTimeSpan(e.target.value)}
-                    className="border p-2 rounded-md bg-gray-700 text-white"
+                    className="w-40 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 outline-none ring-0 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
                   >
                     {timeSpanOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -430,18 +535,25 @@ export default function StockDashboard() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block mb-1">Symbols</label>
+                <div className="max-w-sm">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Symbols
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(groupedData).map((symbol) => (
-                      <label key={symbol}>
+                      <label
+                        key={symbol}
+                        className="flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-1"
+                      >
                         <input
                           type="checkbox"
                           checked={selectedSymbols.includes(symbol)}
                           onChange={() => toggleSymbol(symbol)}
-                          className="mr-1"
+                          className="h-3 w-3 rounded border-slate-600 bg-slate-900 text-sky-500"
                         />
-                        {symbol}
+                        <span className="text-[11px] text-slate-200">
+                          {symbol}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -449,27 +561,31 @@ export default function StockDashboard() {
               </div>
             </div>
             {selectedSymbols.length > 0 ? (
-              <Line data={lineChartData} options={lineChartOptions} />
+              <div className="h-80">
+                <Line data={lineChartData} options={lineChartOptions} />
+              </div>
             ) : (
-              <p className="text-gray-500">No symbols selected.</p>
+              <p className="text-sm text-slate-500">No symbols selected.</p>
             )}
-          </div>
+          </Card>
         );
       case "stockValueSummary":
         return (
-          <div className="bg-gray-200 rounded-lg p-3 relative">
-            <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-              onClick={() => removeDashboardComponent(index)}
-            >
-              X
-            </button>
-            <h2 className="text-xl font-semibold mb-3">Stock Value Summary</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Card
+            title="Stock Value Summary"
+            subtitle="Wertverlauf je Position"
+            onClose={() => removeDashboardComponent(index)}
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               {stockValueData.map((stock) => (
-                <div key={stock.symbol} className="bg-gray-100 rounded-lg p-3">
-                  <h3 className="font-bold mb-2">{stock.symbol}</h3>
-                  <div className="w-full h-32">
+                <div
+                  key={stock.symbol}
+                  className="rounded-xl border border-slate-800 bg-slate-950/60 p-3"
+                >
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+                    {stock.symbol}
+                  </p>
+                  <div className="h-32 w-full">
                     <Line
                       data={{
                         datasets: [
@@ -487,7 +603,7 @@ export default function StockDashboard() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         );
       default:
         return null;
@@ -495,41 +611,64 @@ export default function StockDashboard() {
   };
 
   return (
-    <div className="p-6">
-      {/* Dashboard Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Stock Prices Dashboard</h1>
-        <div className="mt-4 sm:mt-0">
-          {availableComponents.length > 0 ? (
-            <select
-              defaultValue=""
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                if (e.target.value) {
-                  addDashboardComponent(e.target.value);
-                }
-              }}
-              className="border p-2 rounded-md bg-gray-700 text-white"
-            >
-              <option value="" disabled>
-                Add Component
-              </option>
-              {availableComponents.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <p className="text-gray-600">All components added.</p>
-          )}
-        </div>
-      </div>
-      {/* Dashboard Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {selectedCharts.map((comp, index) => (
-          <div key={index}>{renderComponent(comp, index)}</div>
-        ))}
-      </div>
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
+        {/* Dashboard Header */}
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-400/80">
+              moremoney
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+              Stock Prices Dashboard
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Live-Überblick über Depotwert, Verteilung und Kursverlauf deiner
+              beobachteten Aktien.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start gap-2 text-sm md:items-end">
+            {availableComponents.length > 0 ? (
+              <>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Widgets
+                </span>
+                <select
+                  defaultValue=""
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                    if (e.target.value) {
+                      addDashboardComponent(e.target.value);
+                      e.target.value = "";
+                    }
+                  }}
+                  className="w-48 rounded-full border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none ring-0 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                >
+                  <option value="" disabled>
+                    Add Component
+                  </option>
+                  {availableComponents.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <p className="text-xs text-slate-500">
+                All components added.
+              </p>
+            )}
+          </div>
+        </header>
+
+        {/* Dashboard Grid */}
+        <section className="grid gap-6 md:grid-cols-2">
+          {selectedCharts.map((comp, index) => (
+            <div key={comp + index}>{renderComponent(comp, index)}</div>
+          ))}
+        </section>
+      </main>
     </div>
   );
 }
