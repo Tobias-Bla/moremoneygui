@@ -66,9 +66,7 @@ const Card = ({ title, subtitle, onClose, children }: CardProps) => (
       <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">
         {title}
       </h2>
-      {subtitle && (
-        <p className="text-xs text-slate-400">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
     </header>
     {children}
   </section>
@@ -83,7 +81,9 @@ const timeSpanOptions: { label: string; value: string }[] = [
   { label: "Last 1 Year", value: "1Y" },
 ];
 
-function getTimeUnit(span: string): "minute" | "hour" | "day" | "week" | "month" | "year" {
+function getTimeUnit(
+  span: string
+): "minute" | "hour" | "day" | "week" | "month" | "year" {
   switch (span) {
     case "1D":
       return "hour";
@@ -140,13 +140,12 @@ function hashCode(str: string): number {
   return hash;
 }
 
-// All available dashboard components.
+// Dashboard components (StockValueSummary entfernt)
 const dashboardComponents = [
   { label: "Portfolio Overview", value: "portfolioOverview" },
   { label: "Portfolio Value", value: "portfolioValue" },
   { label: "Portfolio Composition", value: "portfolioComposition" },
   { label: "Stock Prices Over Time", value: "stockPrices" },
-  { label: "Stock Value Summary", value: "stockValueSummary" },
 ];
 
 export default function StockDashboard() {
@@ -156,19 +155,31 @@ export default function StockDashboard() {
   const [timeSpan, setTimeSpan] = useState<string>("ALL");
   const [selectedCharts, setSelectedCharts] = useState<string[]>([]);
 
-  // Load saved dashboard settings or default to two components
+  // Load saved dashboard settings or default
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("dashboardSelectedCharts");
       if (saved) {
         const parsed: string[] = JSON.parse(saved);
-        if (parsed.length === 0) {
-          setSelectedCharts(["portfolioOverview", "stockValueSummary"]);
+        // StockValueSummary rausschmeißen, falls alt gespeichert
+        const sanitized = parsed.filter((c) => c !== "stockValueSummary");
+        if (sanitized.length === 0) {
+          setSelectedCharts([
+            "portfolioOverview",
+            "stockPrices",
+            "portfolioValue",
+            "portfolioComposition",
+          ]);
         } else {
-          setSelectedCharts(parsed);
+          setSelectedCharts(sanitized);
         }
       } else {
-        setSelectedCharts(["portfolioOverview", "stockValueSummary"]);
+        setSelectedCharts([
+          "portfolioOverview",
+          "stockPrices",
+          "portfolioValue",
+          "portfolioComposition",
+        ]);
       }
     }
   }, []);
@@ -188,14 +199,12 @@ export default function StockDashboard() {
     (c) => !selectedCharts.includes(c.value)
   );
 
-  // Add component (no duplicates allowed).
   const addDashboardComponent = (componentValue: string) => {
     if (!selectedCharts.includes(componentValue)) {
       setSelectedCharts((prev) => [...prev, componentValue]);
     }
   };
 
-  // Remove a component by its index.
   const removeDashboardComponent = (indexToRemove: number) => {
     setSelectedCharts((prev) =>
       prev.filter((_, index) => index !== indexToRemove)
@@ -230,12 +239,22 @@ export default function StockDashboard() {
     {} as { [key: string]: StockPrice[] }
   );
 
+  // Nur Symbole, die auch im Portfolio sind + Daten haben
+  const availableSymbols = portfolio
+    .map((p) => p.symbol)
+    .filter((symbol, index, self) => self.indexOf(symbol) === index)
+    .filter((symbol) => groupedData[symbol] && groupedData[symbol].length > 0);
+
+  // Initial + Cleanup der ausgewählten Symbole
   useEffect(() => {
-    const allSymbols = Object.keys(groupedData);
-    if (selectedSymbols.length === 0 && allSymbols.length > 0) {
-      setSelectedSymbols(allSymbols);
-    }
-  }, [groupedData, selectedSymbols.length]);
+    setSelectedSymbols((prev) => {
+      if (availableSymbols.length === 0) return prev;
+      if (prev.length === 0) return availableSymbols;
+      const stillValid = prev.filter((s) => availableSymbols.includes(s));
+      return stillValid.length === 0 ? availableSymbols : stillValid;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolio, stockPrices]);
 
   const toggleSymbol = (symbol: string) => {
     setSelectedSymbols((prev) =>
@@ -246,6 +265,7 @@ export default function StockDashboard() {
   // Chart settings for "Stock Prices Over Time"
   const startDate = getStartDateForTimeSpan(timeSpan);
   const timeUnit = getTimeUnit(timeSpan);
+
   const lineDatasets = selectedSymbols.map((symbol) => {
     const dataForSymbol = (groupedData[symbol] || [])
       .filter((dp) => new Date(dp.timestamp) >= startDate)
@@ -263,6 +283,7 @@ export default function StockDashboard() {
       borderColor: getColorForSymbol(symbol),
     };
   });
+
   const lineChartData = { datasets: lineDatasets };
   const lineChartOptions = {
     scales: {
@@ -279,9 +300,7 @@ export default function StockDashboard() {
     },
     plugins: {
       legend: {
-        labels: {
-          color: "#e5e7eb",
-        },
+        labels: { color: "#e5e7eb" },
       },
     },
   };
@@ -327,9 +346,7 @@ export default function StockDashboard() {
     },
     plugins: {
       legend: {
-        labels: {
-          color: "#e5e7eb",
-        },
+        labels: { color: "#e5e7eb" },
       },
     },
   };
@@ -348,7 +365,7 @@ export default function StockDashboard() {
     ],
   };
 
-  // Redesigned Portfolio Overview:
+  // Portfolio Overview Mini-Charts
   const miniChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -374,38 +391,10 @@ export default function StockDashboard() {
     const total = item.quantity * latestPrice;
     return { ...item, miniData: symbolData, latestPrice, total };
   });
-  const grandTotal = portfolioOverview.reduce((acc, curr) => acc + curr.total, 0);
-
-  // Stock Value Summary:
-  const stockValueData = portfolio.map((item) => {
-    const dataForStock = (groupedData[item.symbol] || [])
-      .sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      )
-      .map((dp) => ({
-        x: new Date(dp.timestamp),
-        y: item.quantity * parseFloat(dp.price),
-      }));
-    return { symbol: item.symbol, data: dataForStock };
-  });
-  const stockValueSummaryOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: {
-        display: true,
-        title: { display: true, text: "Time" },
-        grid: { color: "rgba(148, 163, 184, 0.15)" },
-      },
-      y: {
-        display: true,
-        title: { display: true, text: "Value ($)" },
-        grid: { color: "rgba(15, 23, 42, 0.8)" },
-      },
-    },
-  };
+  const grandTotal = portfolioOverview.reduce(
+    (acc, curr) => acc + curr.total,
+    0
+  );
 
   // Render a component based on its type.
   const renderComponent = (component: string, index: number) => {
@@ -514,7 +503,7 @@ export default function StockDashboard() {
         return (
           <Card
             title="Stock Prices Over Time"
-            subtitle="Kursentwicklung deiner Werte"
+            subtitle="Kursentwicklung deiner Portfolio-Werte"
             onClose={() => removeDashboardComponent(index)}
           >
             <div className="mb-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-200">
@@ -537,10 +526,10 @@ export default function StockDashboard() {
                 </div>
                 <div className="max-w-sm">
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Symbols
+                    Symbols (Portfolio)
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {Object.keys(groupedData).map((symbol) => (
+                    {availableSymbols.map((symbol) => (
                       <label
                         key={symbol}
                         className="flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-1"
@@ -565,44 +554,10 @@ export default function StockDashboard() {
                 <Line data={lineChartData} options={lineChartOptions} />
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No symbols selected.</p>
+              <p className="text-sm text-slate-500">
+                No symbols selected or no data for portfolio symbols.
+              </p>
             )}
-          </Card>
-        );
-      case "stockValueSummary":
-        return (
-          <Card
-            title="Stock Value Summary"
-            subtitle="Wertverlauf je Position"
-            onClose={() => removeDashboardComponent(index)}
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              {stockValueData.map((stock) => (
-                <div
-                  key={stock.symbol}
-                  className="rounded-xl border border-slate-800 bg-slate-950/60 p-3"
-                >
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
-                    {stock.symbol}
-                  </p>
-                  <div className="h-32 w-full">
-                    <Line
-                      data={{
-                        datasets: [
-                          {
-                            label: stock.symbol,
-                            data: stock.data,
-                            fill: false,
-                            borderColor: getColorForSymbol(stock.symbol),
-                          },
-                        ],
-                      }}
-                      options={stockValueSummaryOptions}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
           </Card>
         );
       default:
@@ -655,18 +610,23 @@ export default function StockDashboard() {
                 </select>
               </>
             ) : (
-              <p className="text-xs text-slate-500">
-                All components added.
-              </p>
+              <p className="text-xs text-slate-500">All components added.</p>
             )}
           </div>
         </header>
 
         {/* Dashboard Grid */}
         <section className="grid gap-6 md:grid-cols-2">
-          {selectedCharts.map((comp, index) => (
-            <div key={comp + index}>{renderComponent(comp, index)}</div>
-          ))}
+          {selectedCharts.map((comp, index) => {
+            const fullWidth =
+              comp === "portfolioOverview" || comp === "stockPrices";
+            const colClass = fullWidth ? "md:col-span-2" : "";
+            return (
+              <div key={comp + index} className={colClass}>
+                {renderComponent(comp, index)}
+              </div>
+            );
+          })}
         </section>
       </main>
     </div>
