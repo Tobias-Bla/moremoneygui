@@ -18,7 +18,6 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-// Register Chart.js components
 ChartJS.register(
   TimeScale,
   LinearScale,
@@ -35,7 +34,7 @@ ChartJS.register(
 interface StockPrice {
   symbol: string;
   timestamp: string;
-  price: string; // Prisma Decimal returns as string
+  price: string;
 }
 
 interface PortfolioItem {
@@ -120,13 +119,13 @@ function getStartDateForTimeSpan(span: string): Date {
 
 function getColorForSymbol(symbol: string): string {
   const colors = [
-    "rgba(239, 68, 68, 0.9)", // Red
-    "rgba(59, 130, 246, 0.9)", // Blue
-    "rgba(234, 179, 8, 0.9)", // Yellow
-    "rgba(16, 185, 129, 0.9)", // Emerald
-    "rgba(129, 140, 248, 0.9)", // Indigo
-    "rgba(249, 115, 22, 0.9)", // Orange
-    "rgba(148, 163, 184, 0.9)", // Slate
+    "rgba(239, 68, 68, 0.9)",
+    "rgba(59, 130, 246, 0.9)",
+    "rgba(234, 179, 8, 0.9)",
+    "rgba(16, 185, 129, 0.9)",
+    "rgba(129, 140, 248, 0.9)",
+    "rgba(249, 115, 22, 0.9)",
+    "rgba(148, 163, 184, 0.9)",
   ];
   const index = Math.abs(hashCode(symbol)) % colors.length;
   return colors[index];
@@ -134,13 +133,13 @@ function getColorForSymbol(symbol: string): string {
 
 function hashCode(str: string): number {
   let hash = 0;
-  for (let i = 0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i += 1) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   return hash;
 }
 
-// Dashboard components (StockValueSummary entfernt)
+// konfigurierbare Widgets (ohne StockValueSummary)
 const dashboardComponents = [
   { label: "Portfolio Overview", value: "portfolioOverview" },
   { label: "Portfolio Value", value: "portfolioValue" },
@@ -155,13 +154,11 @@ export default function StockDashboard() {
   const [timeSpan, setTimeSpan] = useState<string>("ALL");
   const [selectedCharts, setSelectedCharts] = useState<string[]>([]);
 
-  // Load saved dashboard settings or default
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("dashboardSelectedCharts");
       if (saved) {
         const parsed: string[] = JSON.parse(saved);
-        // StockValueSummary rausschmeißen, falls alt gespeichert
         const sanitized = parsed.filter((c) => c !== "stockValueSummary");
         if (sanitized.length === 0) {
           setSelectedCharts([
@@ -184,7 +181,6 @@ export default function StockDashboard() {
     }
   }, []);
 
-  // Persist settings whenever they change.
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
@@ -194,7 +190,6 @@ export default function StockDashboard() {
     }
   }, [selectedCharts]);
 
-  // Only list dropdown options that are not already selected.
   const availableComponents = dashboardComponents.filter(
     (c) => !selectedCharts.includes(c.value)
   );
@@ -211,7 +206,6 @@ export default function StockDashboard() {
     );
   };
 
-  // Fetch stock prices.
   useEffect(() => {
     axios
       .get<StockPrice[]>("/api/stock_prices")
@@ -219,7 +213,6 @@ export default function StockDashboard() {
       .catch((error) => console.error("Error fetching stock prices:", error));
   }, []);
 
-  // Fetch portfolio data.
   useEffect(() => {
     axios
       .get<PortfolioItem[]>("/api/portfolio", { withCredentials: true })
@@ -227,7 +220,6 @@ export default function StockDashboard() {
       .catch((error) => console.error("Error fetching portfolio:", error));
   }, []);
 
-  // Group stock prices by symbol.
   const groupedData = stockPrices.reduce(
     (acc: { [key: string]: StockPrice[] }, curr) => {
       if (!acc[curr.symbol]) {
@@ -239,13 +231,11 @@ export default function StockDashboard() {
     {} as { [key: string]: StockPrice[] }
   );
 
-  // Nur Symbole, die auch im Portfolio sind + Daten haben
   const availableSymbols = portfolio
     .map((p) => p.symbol)
     .filter((symbol, index, self) => self.indexOf(symbol) === index)
     .filter((symbol) => groupedData[symbol] && groupedData[symbol].length > 0);
 
-  // Initial + Cleanup der ausgewählten Symbole
   useEffect(() => {
     setSelectedSymbols((prev) => {
       if (availableSymbols.length === 0) return prev;
@@ -262,7 +252,6 @@ export default function StockDashboard() {
     );
   };
 
-  // Chart settings for "Stock Prices Over Time"
   const startDate = getStartDateForTimeSpan(timeSpan);
   const timeUnit = getTimeUnit(timeSpan);
 
@@ -305,7 +294,6 @@ export default function StockDashboard() {
     },
   };
 
-  // Compute latest price per symbol.
   const latestPriceBySymbol: { [key: string]: number } = {};
   for (const symbol in groupedData) {
     const sorted = groupedData[symbol].sort(
@@ -316,7 +304,6 @@ export default function StockDashboard() {
     }
   }
 
-  // Portfolio Value (bar chart) data.
   const barLabels = portfolio.map((item) => item.symbol);
   const barData = portfolio.map((item) => {
     const latestPrice = latestPriceBySymbol[item.symbol] || 0;
@@ -351,7 +338,6 @@ export default function StockDashboard() {
     },
   };
 
-  // Portfolio Composition (pie chart) data.
   const pieData = {
     labels: portfolio.map((item) => item.symbol),
     datasets: [
@@ -365,7 +351,7 @@ export default function StockDashboard() {
     ],
   };
 
-  // Portfolio Overview Mini-Charts
+  // Mini-Chart für spätere Erweiterung (z. B. kleine Sparkline)
   const miniChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -375,7 +361,7 @@ export default function StockDashboard() {
       y: { display: false },
     },
   };
-  const miniStartDate = getStartDateForTimeSpan("1D");
+  const miniStartDate = getStartDateForTimeSpan("1M");
   const portfolioOverview = portfolio.map((item) => {
     const symbolData = (groupedData[item.symbol] || [])
       .filter((dp) => new Date(dp.timestamp) >= miniStartDate)
@@ -396,71 +382,142 @@ export default function StockDashboard() {
     0
   );
 
-  // Render a component based on its type.
+  // KPI: Tagesperformance (nur, wenn mind. 2 Datenpunkte pro Symbol)
+  let dailyPrev = 0;
+  let dailyCurr = 0;
+  portfolio.forEach((item) => {
+    const data = (groupedData[item.symbol] || []).sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    if (data.length === 0) return;
+    const last = parseFloat(data[data.length - 1].price);
+    const prev =
+      data.length > 1
+        ? parseFloat(data[data.length - 2].price)
+        : parseFloat(data[data.length - 1].price);
+    dailyCurr += item.quantity * last;
+    dailyPrev += item.quantity * prev;
+  });
+  const dailyDiff = dailyCurr - dailyPrev;
+  const dailyPct =
+    dailyPrev > 0 ? (dailyDiff / dailyPrev) * 100 : dailyCurr > 0 ? 100 : 0;
+
+  const positionsCount = portfolio.length;
+
   const renderComponent = (component: string, index: number) => {
     switch (component) {
       case "portfolioOverview":
         return (
           <Card
             title="Portfolio Overview"
-            subtitle="Überblick über deine Positionen"
+            subtitle="Bestand deines Depots"
             onClose={() => removeDashboardComponent(index)}
           >
-            <div className="grid gap-4 md:grid-cols-2">
-              {portfolioOverview.map((item) => (
-                <div
-                  key={item.symbol}
-                  className="flex flex-col gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-3"
-                >
-                  <div className="flex items-baseline justify-between">
-                    <p className="text-sm font-semibold tracking-wide text-slate-100">
-                      {item.symbol}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Qty:{" "}
-                      <span className="font-medium text-slate-100">
-                        {item.quantity}
-                      </span>
-                    </p>
-                  </div>
-                  <p className="text-xs text-slate-400">
-                    Price:{" "}
-                    <span className="font-medium text-emerald-400">
-                      ${item.latestPrice.toFixed(2)}
-                    </span>
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Total:{" "}
-                    <span className="font-semibold text-slate-50">
-                      ${item.total.toFixed(2)}
-                    </span>
-                  </p>
-                  <div className="mt-2 h-16 w-full">
-                    <Line
-                      data={{
-                        datasets: [
-                          {
-                            label: item.symbol,
-                            data: item.miniData,
-                            fill: false,
-                            borderColor: getColorForSymbol(item.symbol),
-                          },
-                        ],
-                      }}
-                      options={miniChartOptions}
-                    />
-                  </div>
+            {portfolioOverview.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                No portfolio data available.
+              </p>
+            ) : (
+              <>
+                <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/40">
+                  <table className="min-w-full text-sm text-slate-200">
+                    <thead className="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Stück
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Akt. Kurs
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Wert
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Gewichtung
+                        </th>
+                        <th className="px-4 py-3 text-right font-semibold">
+                          Chart
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portfolioOverview.map((item) => {
+                        const weight =
+                          grandTotal > 0
+                            ? (item.total / grandTotal) * 100
+                            : 0;
+                        return (
+                          <tr
+                            key={item.symbol}
+                            className="border-t border-slate-800/80 hover:bg-slate-900/60"
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold">
+                                  {item.symbol}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  Stock • {item.symbol}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-right align-middle">
+                              {item.quantity}
+                            </td>
+                            <td className="px-4 py-3 text-right align-middle">
+                              <span className="font-medium text-emerald-400">
+                                ${item.latestPrice.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right align-middle">
+                              <span className="font-semibold">
+                                ${item.total.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right align-middle">
+                              <span className="text-xs text-slate-300">
+                                {weight.toFixed(2)} %
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right align-middle">
+                              <div className="ml-auto h-8 w-24">
+                                {item.miniData.length > 1 && (
+                                  <Line
+                                    data={{
+                                      datasets: [
+                                        {
+                                          label: item.symbol,
+                                          data: item.miniData,
+                                          fill: false,
+                                          borderColor: getColorForSymbol(
+                                            item.symbol
+                                          ),
+                                        },
+                                      ],
+                                    }}
+                                    options={miniChartOptions}
+                                  />
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 p-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Grand Total
-                </p>
-                <p className="mt-2 text-2xl font-semibold text-slate-50">
-                  ${grandTotal.toFixed(2)}
-                </p>
-              </div>
-            </div>
+                <div className="mt-4 flex justify-between text-xs text-slate-400">
+                  <span>Depotbestand</span>
+                  <span className="text-sm font-semibold text-slate-50">
+                    ${grandTotal.toFixed(2)}
+                  </span>
+                </div>
+              </>
+            )}
           </Card>
         );
       case "portfolioValue":
@@ -568,7 +625,7 @@ export default function StockDashboard() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
       <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 lg:px-8">
-        {/* Dashboard Header */}
+        {/* Header */}
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-400/80">
@@ -615,7 +672,51 @@ export default function StockDashboard() {
           </div>
         </header>
 
-        {/* Dashboard Grid */}
+        {/* KPI Cards */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-900 to-slate-900 px-5 py-4 shadow-md">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-200/80">
+              Depotbestand
+            </p>
+            <p className="mt-2 text-2xl font-semibold">
+              {grandTotal > 0 ? `$${grandTotal.toFixed(2)}` : "—"}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-500/20 bg-slate-900/80 px-5 py-4 shadow-md">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+              Tagesperformance
+            </p>
+            {dailyPrev === 0 && dailyCurr === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">Keine Daten</p>
+            ) : (
+              <>
+                <p
+                  className={`mt-2 text-lg font-semibold ${
+                    dailyDiff >= 0 ? "text-emerald-400" : "text-rose-400"
+                  }`}
+                >
+                  {dailyDiff >= 0 ? "+" : ""}
+                  ${dailyDiff.toFixed(2)}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {dailyDiff >= 0 ? "+" : ""}
+                  {dailyPct.toFixed(2)} %
+                  {dailyPrev === 0 && dailyCurr > 0 ? " (seit Start)" : ""}
+                </p>
+              </>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-5 py-4 shadow-md">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+              Positionen
+            </p>
+            <p className="mt-2 text-2xl font-semibold">{positionsCount}</p>
+          </div>
+        </section>
+
+        {/* Widgets */}
         <section className="grid gap-6 md:grid-cols-2">
           {selectedCharts.map((comp, index) => {
             const fullWidth =
