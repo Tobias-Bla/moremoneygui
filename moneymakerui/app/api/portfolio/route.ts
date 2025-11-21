@@ -36,7 +36,7 @@ export async function GET() {
 
     return NextResponse.json(stocks, { status: 200 });
   } catch (error) {
-    console.error("GET error:", error);
+    console.error("GET /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Unable to fetch stocks" },
       { status: 500 }
@@ -58,7 +58,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { symbol, quantity } = await req.json();
+    const { symbol, quantity } = await req.json() as {
+      symbol?: string;
+      quantity?: number;
+    };
 
     if (!symbol || !quantity || quantity <= 0) {
       return NextResponse.json(
@@ -67,7 +70,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1️⃣ User holen
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -79,7 +81,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2️⃣ Upsert via (userId, symbol)
     const stock = await prisma.userStock.upsert({
       where: {
         user_symbol: {
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("POST error:", error);
+    console.error("POST /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -129,7 +130,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const { symbol } = await req.json();
+    const { symbol } = await req.json() as { symbol?: string };
 
     if (!symbol) {
       return NextResponse.json(
@@ -138,7 +139,6 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // 1️⃣ User holen
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -150,7 +150,6 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // 2️⃣ Delete via userId
     await prisma.userStock.deleteMany({
       where: {
         userId: user.id,
@@ -163,7 +162,7 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("DELETE error:", error);
+    console.error("DELETE /api/portfolio error:", error);
     return NextResponse.json(
       { error: "Unable to remove stock" },
       { status: 500 }
