@@ -13,12 +13,21 @@ import bcrypt from "bcryptjs";
 import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 
-// ⬇️ WICHTIG: zentralen Prisma-Client verwenden
 import prisma from "@/lib/prisma";
 
 interface ExtendedProfile extends NextAuthProfile {
   avatar_url?: string;
 }
+
+// Session.user um ein id-Feld erweitern (nur im Code, nicht in der DB)
+type ExtendedSessionUser = Session["user"] & {
+  id?: string;
+};
+
+// JWT um accessToken erweitern
+type ExtendedJWT = JWT & {
+  accessToken?: string;
+};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -49,7 +58,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No user found with this email.");
         }
 
-        // ⬇️ WICHTIG: passwordHash statt password
+        // WICHTIG: passwordHash statt password
         const passwordValid = await bcrypt.compare(
           credentials.password,
           user.passwordHash,
@@ -76,12 +85,26 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async session({ session, token }: { session: Session; token: JWT }) {
-      // Achtung: dein Session-Typ muss user.id erlauben (notfalls any casten)
-      (session.user as any).id = token.sub!;
-      session.user.name = token.name || token.email!;
-      session.user.email = token.email!;
-      session.user.image = token.picture || "/default-avatar.png";
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT;
+    }) {
+      if (session.user) {
+        const user = session.user as ExtendedSessionUser;
+
+        if (token.sub) {
+          user.id = token.sub;
+        }
+
+        user.name = token.name ?? token.email ?? user.name ?? null;
+        user.email = token.email ?? user.email ?? null;
+        user.image =
+          token.picture ?? user.image ?? "/default-avatar.png";
+      }
+
       return session;
     },
 
@@ -96,22 +119,25 @@ export const authOptions: NextAuthOptions = {
       account?: Account | null;
       profile?: ExtendedProfile;
     }) {
-      if (account?.access_token) {
-        (token as any).accessToken = account.access_token;
+      const extendedToken = token as ExtendedJWT;
+
+      if (account && "access_token" in account && account.access_token) {
+        extendedToken.accessToken = account.access_token as string;
       }
 
       if (user) {
-        token.sub = user.id;
-        token.name = user.name!;
-        token.email = user.email!;
-        token.picture = user.image || "/default-avatar.png";
+        extendedToken.sub = user.id;
+        extendedToken.name = user.name ?? extendedToken.name;
+        extendedToken.email = user.email ?? extendedToken.email;
+        extendedToken.picture =
+          user.image ?? extendedToken.picture ?? "/default-avatar.png";
       }
 
       if (profile?.avatar_url) {
-        token.picture = profile.avatar_url;
+        extendedToken.picture = profile.avatar_url;
       }
 
-      return token;
+      return extendedToken;
     },
   },
 
