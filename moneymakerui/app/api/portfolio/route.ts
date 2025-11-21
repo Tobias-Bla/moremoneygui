@@ -8,7 +8,7 @@ import prisma from "@/lib/prisma";
 // -------------------------------
 // GET: Portfolio abrufen
 // -------------------------------
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.email) {
@@ -19,7 +19,6 @@ export async function GET(_req: NextRequest) {
   }
 
   try {
-    // 1️⃣ User holen
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -31,7 +30,6 @@ export async function GET(_req: NextRequest) {
       );
     }
 
-    // 2️⃣ Portfolio nach userId
     const stocks = await prisma.userStock.findMany({
       where: { userId: user.id },
     });
